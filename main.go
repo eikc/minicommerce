@@ -53,9 +53,11 @@ func webhookReceiver(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 			return
 		}
 
+		token := o.Metadata["token"]
+
 		fmt.Println("yes an order created, paying the order")
 		op := &stripe.OrderPayParams{}
-		op.SetSource("tok_amex") // obtained with Stripe.js
+		op.SetSource(token) // obtained with Stripe.js
 		stripeOrders.Pay(o.ID, op)
 		fmt.Println("order paid")
 

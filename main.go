@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/eikc/dinero-go/dinerotest"
+	"github.com/rs/cors"
 
 	"github.com/eikc/dinero-go"
 
@@ -49,7 +50,9 @@ func main() {
 	router.POST("/create", create())
 	router.POST("/webhook", webhookReceiver(&api, apiKey, orgID))
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	handler := cors.Default().Handler(router)
+
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -71,7 +74,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 			err := json.Unmarshal(e.Data.Raw, &o)
 			if err != nil {
 				go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-				w.WriteHeader(http.StatusInternalServerError)
+				errorHandling(w, err)
 				return
 			}
 
@@ -88,7 +91,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 			err := json.Unmarshal(e.Data.Raw, &o)
 			if err != nil {
 				go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-				w.WriteHeader(http.StatusInternalServerError)
+				errorHandling(w, err)
 				return
 			}
 
@@ -98,7 +101,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 			contactID, err := api.CreateCustomer(email, name, address)
 			if err != nil {
 				go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-				w.WriteHeader(http.StatusInternalServerError)
+				errorHandling(w, err)
 				return
 			}
 
@@ -108,7 +111,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 			_, err = stripeOrders.Update(o.ID, &updatedOrder)
 			if err != nil {
 				go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-				w.WriteHeader(http.StatusInternalServerError)
+				errorHandling(w, err)
 				return
 			}
 
@@ -124,7 +127,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 			err := json.Unmarshal(e.Data.Raw, &o)
 			if err != nil {
 				go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-				w.WriteHeader(http.StatusInternalServerError)
+				errorHandling(w, err)
 				return
 			}
 
@@ -138,7 +141,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 				invoice, err := api.CreateInvoice(customerID, productName, amount)
 				if err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -150,7 +153,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 				_, err = stripeOrders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -163,8 +166,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 				invoice, err := api.BookInvoice(invoiceID, timestamp)
 				if err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					fmt.Println("error occured: ", err)
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -176,7 +178,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 				_, err = stripeOrders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -187,7 +189,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 
 				if err := api.CreatePayment(invoiceID, o.Amount); err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -197,7 +199,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 				_, err = stripeOrders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -207,7 +209,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 				invoiceID := o.Metadata["invoiceID"]
 				if err := api.SendInvoice(invoiceID); err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -218,7 +220,7 @@ func webhookReceiver(api *dineroAPI, apiKey string, orgID int) httprouter.Handle
 				_, err = stripeOrders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					go slackLogging(fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
-					w.WriteHeader(http.StatusInternalServerError)
+					errorHandling(w, err)
 					return
 				}
 
@@ -239,7 +241,8 @@ func create() httprouter.Handle {
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&o)
 		if err != nil {
-			fmt.Fprint(w, err)
+			errorHandling(w, err)
+			return
 		}
 
 		params := &stripe.OrderParams{
@@ -263,13 +266,20 @@ func create() httprouter.Handle {
 
 		_, err = stripeOrders.New(params)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			errorHandling(w, err)
 			return
 		}
 
-		slackLogging("New order received!", "YES! You are BADASS!! :tada: :the_horns: :rocket:", "new", "#2eb886")
+		slackLogging("New order received!", "YES! You are a BADASS!! :tada: :the_horns: :rocket:", "new", "#2eb886")
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func errorHandling(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	fmt.Println("error occured: ", err)
+	fmt.Fprint(w, err)
+	return
 }
 
 func slackLogging(title, text, status, color string) {

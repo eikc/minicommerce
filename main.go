@@ -195,21 +195,19 @@ func webhookReceiver() httprouter.Handle {
 			err := json.Unmarshal(e.Data.Raw, &o)
 			if err != nil {
 				errorHandling(w, err)
-				go slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+				go slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error unmarshalling order! PANIC!", "#CF0003")
 				return
 			}
 
 			name := o.Metadata["name"]
 			email := o.Metadata["email"]
 			address := o.Metadata["address"]
-			log.Debugf(c, "creating contact...")
 			contactID, err := api.CreateCustomer(email, name, address)
 			if err != nil {
 				errorHandling(w, err)
-				go slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+				go slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error creating contact in Dinero", "#CF0003")
 				return
 			}
-			log.Debugf(c, "updating order...")
 
 			updatedOrder := stripe.OrderUpdateParams{}
 			updatedOrder.AddMetadata(flowStatus, customerCreatedStatus)
@@ -217,7 +215,10 @@ func webhookReceiver() httprouter.Handle {
 			_, err = stripeAPI.Orders.Update(o.ID, &updatedOrder)
 			if err != nil {
 				errorHandling(w, err)
-				slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+				slackLogging(httpClient,
+					fmt.Sprintf("Order %v", o.ID), err.Error(),
+					fmt.Sprintf("Stripe API - Error updating state to %v", customerCreatedStatus),
+					"#CF0003")
 				return
 			}
 
@@ -233,7 +234,7 @@ func webhookReceiver() httprouter.Handle {
 			err := json.Unmarshal(e.Data.Raw, &o)
 			if err != nil {
 				errorHandling(w, err)
-				slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+				slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "error with unmarshalling order, PANIC!", "#CF0003")
 				return
 			}
 
@@ -247,7 +248,7 @@ func webhookReceiver() httprouter.Handle {
 				invoice, err := api.CreateInvoice(customerID, productName, amount)
 				if err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error talking to Dinero - Creating invoice", "#CF0003")
 					return
 				}
 
@@ -259,7 +260,10 @@ func webhookReceiver() httprouter.Handle {
 				_, err = stripeAPI.Orders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient,
+						fmt.Sprintf("Order %v", o.ID), err.Error(),
+						fmt.Sprintf("Stripe API - Error updating state to %v", invoiceCreatedStatus),
+						"#CF0003")
 					return
 				}
 
@@ -272,7 +276,7 @@ func webhookReceiver() httprouter.Handle {
 				invoice, err := api.BookInvoice(invoiceID, timestamp)
 				if err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Dinero api - Error booking invoice", "#CF0003")
 					return
 				}
 
@@ -284,7 +288,10 @@ func webhookReceiver() httprouter.Handle {
 				_, err = stripeAPI.Orders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient,
+						fmt.Sprintf("Order %v", o.ID), err.Error(),
+						fmt.Sprintf("Stripe API - Error updating state to %v", invoiceBookedStatus),
+						"#CF0003")
 					return
 				}
 
@@ -295,7 +302,7 @@ func webhookReceiver() httprouter.Handle {
 
 				if err := api.CreatePayment(invoiceID, o.Amount); err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Dinero API - Error creating payment", "#CF0003")
 					return
 				}
 
@@ -305,7 +312,10 @@ func webhookReceiver() httprouter.Handle {
 				_, err = stripeAPI.Orders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient,
+						fmt.Sprintf("Order %v", o.ID), err.Error(),
+						fmt.Sprintf("Stripe API - Error updating state to %v", invoicePaidStatus),
+						"#CF0003")
 					return
 				}
 
@@ -315,7 +325,7 @@ func webhookReceiver() httprouter.Handle {
 				order, err := stripeAPI.Orders.Get(o.ID, nil)
 				if err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Stripe API - error getting stripe order", "#CF0003")
 					return
 				}
 
@@ -326,7 +336,7 @@ func webhookReceiver() httprouter.Handle {
 				invoiceID := o.Metadata["invoiceID"]
 				if err := api.SendInvoice(invoiceID); err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Dinero API - Error sending email", "#CF0003")
 					return
 				}
 
@@ -337,7 +347,10 @@ func webhookReceiver() httprouter.Handle {
 				_, err = stripeAPI.Orders.Update(o.ID, &updatedOrder)
 				if err != nil {
 					errorHandling(w, err)
-					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					slackLogging(httpClient,
+						fmt.Sprintf("Order %v", o.ID), err.Error(),
+						fmt.Sprintf("Stripe API - Error updating state to %v", invoiceSentStatus),
+						"#CF0003")
 					return
 				}
 

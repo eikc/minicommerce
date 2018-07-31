@@ -357,7 +357,12 @@ func webhookReceiver() httprouter.Handle {
 				// go slackLogging("Order "+o.ID, "Invoice sent to customer", invoiceSentStatus, "#2eb886")
 
 			case invoiceSentStatus:
-				slackLogging(httpClient, "Order "+o.ID, fmt.Sprintf(":gopher_dance: Well done, you just earned: %v DKK :gopher_dance:", o.Amount/100), "Completed", "#23D1E1")
+				name := o.Metadata["name"]
+				slackLogging(httpClient,
+					"Order "+o.ID,
+					fmt.Sprintf(":gopher_dance: Well done, you just earned: %v DKK and %s will be a badass :gopher_dance:", o.Amount/100, name),
+					"Completed",
+					"#23D1E1")
 			}
 		}
 

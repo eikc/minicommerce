@@ -312,6 +312,17 @@ func webhookReceiver() httprouter.Handle {
 				// go slackLogging("Order "+o.ID, "Payment created for invoice", invoicePaidStatus, "#2eb886")
 
 			case invoicePaidStatus:
+				order, err := stripeAPI.Orders.Get(o.ID, nil)
+				if err != nil {
+					errorHandling(w, err)
+					slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order", "#CF0003")
+					return
+				}
+
+				if order.Status == string(stripe.OrderStatusFulfilled) {
+					break
+				}
+
 				invoiceID := o.Metadata["invoiceID"]
 				if err := api.SendInvoice(invoiceID); err != nil {
 					errorHandling(w, err)

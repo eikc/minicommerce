@@ -67,14 +67,23 @@ func (api *dineroAPI) CreateInvoice(customerID, description string, amount int64
 }
 
 func (api *dineroAPI) BookInvoice(invoiceID, timestamp string) (*invoiceCreated, error) {
-	_, err := invoices.Book(api, invoiceID, timestamp)
+	invoice, err := invoices.Get(api, invoiceID)
 	if err != nil {
 		return nil, err
 	}
 
-	invoice, err := invoices.Get(api, invoiceID)
-	if err != nil {
-		return nil, err
+	var isBooked = invoice.Status == "Booked"
+
+	if !isBooked {
+		_, err := invoices.Book(api, invoiceID, timestamp)
+		if err != nil {
+			return nil, err
+		}
+
+		invoice, err = invoices.Get(api, invoiceID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &invoiceCreated{invoice.ID, invoice.Number, invoice.Timestamp}, nil
@@ -86,9 +95,14 @@ func (api *dineroAPI) CreatePayment(invoiceID string, amount int64) error {
 		return err
 	}
 
+	isPaid := invoice.PaymentStatus == "Paid"
+	if isPaid {
+		return nil
+	}
+
 	payment := invoices.CreatePaymentParams{
 		Amount:               float64(amount / 100),
-		DepositAccountNumber: 55000,
+		DepositAccountNumber: 55010,
 		Description:          "Paid with stripe",
 		PaymentDate:          dinero.DateNow(),
 		Timestamp:            invoice.Timestamp,

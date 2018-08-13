@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/eikc/dinero-go"
 	"github.com/eikc/dinero-go/contacts"
 	"github.com/eikc/dinero-go/invoices"
+	"github.com/eikc/dinero-go/ledgeritems"
 )
 
 type dineroAPI struct {
@@ -123,4 +126,38 @@ func (api *dineroAPI) SendInvoice(invoiceID string) error {
 	}
 
 	return nil
+}
+
+func (api *dineroAPI) AddStripePayout(payoutID string, amount, fee float64) error {
+
+	ledgerItems := []ledgeritems.LedgerItem{
+		{
+			AccountNumber:  55000,
+			AccountVatCode: "None",
+			Amount:         amount,
+			Description:    fmt.Sprintf("Stripe payout udbetaling: %s", payoutID),
+			VoucherNumber:  1,
+			VoucherDate:    dinero.DateNow(),
+		},
+		{
+			AccountNumber:  7220,
+			AccountVatCode: "None",
+			Amount:         fee,
+			Description:    fmt.Sprintf("Stripe gebyr, payout: %s", payoutID),
+			VoucherNumber:  1,
+			VoucherDate:    dinero.DateNow(),
+		},
+		{
+			AccountNumber:  55010,
+			AccountVatCode: "None",
+			Amount:         (amount * -1) + (fee * -1),
+			Description:    fmt.Sprintf("Stripe payout udbetaling: %s", payoutID),
+			VoucherNumber:  1,
+			VoucherDate:    dinero.DateNow(),
+		},
+	}
+
+	_, err := ledgeritems.Create(api, ledgerItems)
+
+	return err
 }

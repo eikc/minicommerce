@@ -1,5 +1,14 @@
 package main
 
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	stripe "github.com/stripe/stripe-go"
+)
+
 type Field struct {
 	Title string `json:"title"`
 	Value string `json:"value"`
@@ -41,4 +50,29 @@ type Payload struct {
 func (attachment *Attachment) addField(field Field) *Attachment {
 	attachment.Fields = append(attachment.Fields, &field)
 	return attachment
+}
+
+func slackLogging(httpClient *http.Client, title, text, status, color string) {
+	url := "https://hooks.slack.com/services/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"
+	attachment1 := Attachment{}
+	attachment1.addField(Field{Title: "Title", Value: title})
+	attachment1.addField(Field{Title: "Status", Value: status})
+	attachment1.addField(Field{Title: "Extra info", Value: text})
+	attachment1.AuthorIcon = stripe.String(":gopher_dance:")
+	attachment1.Color = stripe.String(color)
+
+	payload := Payload{
+		Username:    "robot",
+		Channel:     "#logging",
+		IconEmoji:   ":gopher_dance:",
+		Attachments: []Attachment{attachment1},
+	}
+
+	json, _ := json.Marshal(payload)
+	reader := bytes.NewReader(json)
+
+	_, err := httpClient.Post(url, "application/json", reader)
+	if err != nil {
+		fmt.Println("slack error occured: ", err)
+	}
 }

@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
 )
 
 type MetaResponse struct {
@@ -77,4 +82,46 @@ func getProfile(token string, httpClient *http.Client) (*UserResponse, error) {
 	}
 
 	return &userResp, nil
+}
+
+func instagram(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	ctx := appengine.NewContext(r)
+	client := urlfetch.Client(ctx)
+	settings := getSettings(ctx)
+
+	url := fmt.Sprint("https://api.instagram.com/v1/users/self/media/recent/?access_token=", settings.InstagramToken)
+
+	resp, err := client.Get(url)
+	if err != nil {
+		log.Errorf(ctx, "instagram error occured! %v", err)
+		errorHandling(w, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Errorf(ctx, "instagram error occured! %v", err)
+		errorHandling(w, err)
+		return
+	}
+
+	var userResp UserResponse
+	if err := json.Unmarshal(b, &userResp); err != nil {
+		log.Errorf(ctx, "instagram error occured! %v", err)
+		errorHandling(w, err)
+		return
+	}
+
+	userResp.User = userResp.User[:6]
+
+	json, err := json.Marshal(userResp.User)
+	if err != nil {
+		log.Errorf(ctx, "instagram error occured! %v", err)
+		errorHandling(w, err)
+		return
+	}
+
+	w.Header().Add("Content-Type", "Application/json")
+	fmt.Fprint(w, string(json))
 }

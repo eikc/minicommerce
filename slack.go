@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	stripe "github.com/stripe/stripe-go"
+	"google.golang.org/appengine"
 )
 
 type Field struct {
@@ -53,7 +54,14 @@ func (attachment *Attachment) addField(field Field) *Attachment {
 }
 
 func slackLogging(httpClient *http.Client, title, text, status, color string) {
+	channel := "#logging"
 	url := "https://hooks.slack.com/services/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"
+
+	if appengine.IsDevAppServer() {
+		channel = "Eikster"
+		url = "https://hooks.slack.com/services/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"
+	}
+
 	attachment1 := Attachment{}
 	attachment1.addField(Field{Title: "Title", Value: title})
 	attachment1.addField(Field{Title: "Status", Value: status})
@@ -63,7 +71,7 @@ func slackLogging(httpClient *http.Client, title, text, status, color string) {
 
 	payload := Payload{
 		Username:    "robot",
-		Channel:     "#logging",
+		Channel:     channel,
 		IconEmoji:   ":gopher_dance:",
 		Attachments: []Attachment{attachment1},
 	}

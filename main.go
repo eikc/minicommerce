@@ -172,6 +172,41 @@ func webhookReceiver() httprouter.Handle {
 		}
 
 		switch e.Type {
+		case "payout.paid":
+			var p stripe.Payout
+			if err := json.Unmarshal(e.Data.Raw, &p); err != nil {
+				errorHandling(w, err)
+				go slackLogging(httpClient, "Problems constructing Payout event", err.Error(), "Event error - Payout", "#CF0003")
+				return
+			}
+			params := &stripe.BalanceTransactionListParams{}
+			params.Payout = stripe.String(p.ID)
+
+			i := stripeAPI.Balance.List(params)
+
+			var feeAmount int64
+			for i.Next() {
+				bt := i.BalanceTransaction()
+				feeAmount += bt.Fee
+			}
+
+			amount := float64(p.Amount) / 100
+			fee := float64(feeAmount) / 100
+
+			err := api.AddStripePayout(p.ID, amount, fee)
+
+			if err != nil {
+				errorHandling(w, err)
+				go slackLogging(httpClient, "Stripe Payout", err.Error(), "Failed to update ledger in Dinero", "#CF0003")
+				return
+			}
+
+			slackLogging(httpClient,
+				"payout paid: "+p.ID,
+				fmt.Sprintf("money money money... it's so funny, your bank is filled with: %v", p.Amount/100),
+				"Completed",
+				"#23D1E1")
+
 		case "order.created":
 			var o stripe.Order
 			err := json.Unmarshal(e.Data.Raw, &o)

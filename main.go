@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/rs/cors"
 	"google.golang.org/appengine"
@@ -51,12 +52,21 @@ type order struct {
 	Newsletter  bool
 }
 
+type Bootcamp struct {
+	ID        string
+	Date      string
+	Location  string
+	StartsAt  string
+	SpotsLeft int64
+}
+
 func main() {
 	router := httprouter.New()
 	router.GET("/", index)
 	router.POST("/create", create())
 	router.POST("/webhook", webhookReceiver())
 	router.GET("/instagram", instagram)
+	router.GET("/bootcamp", bootcamp)
 
 	handler := cors.Default().Handler(router)
 
@@ -65,6 +75,43 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, "test")
+}
+
+func bootcamp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	ctx := appengine.NewContext(r)
+	api := getStripe(ctx)
+
+	params := &stripe.SKUListParams{}
+	params.Filters.AddFilter("limit", "", "100")
+	params.Product = stripe.String("prod_DPZ6WIQmyderfW")
+	params.InStock = stripe.Bool(true)
+
+	var test []Bootcamp
+
+	i := api.Skus.List(params)
+	for i.Next() {
+		x := i.SKU()
+		log.Infof(ctx, "it works: %v", x)
+		date := x.Attributes["date"]
+		location := x.Attributes["location"]
+		startsAt := x.Attributes["StartsAt"]
+		res, _ := time.Parse("2006-01-02", date)
+		if res.After(time.Now()) {
+			b := Bootcamp{x.ID, date, location, startsAt, x.Inventory.Quantity}
+			test = append(test, b)
+		}
+	}
+
+	b, _ := json.Marshal(&test)
+
+	fmt.Fprint(w, string(b))
+}
+
+func bootstrap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	ctx := appengine.NewContext(r)
+	initDevelopmentSettings(ctx)
+
 	fmt.Fprint(w, "test")
 }
 

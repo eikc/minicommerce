@@ -26,6 +26,10 @@ func webhookReceiver() httprouter.Handle {
 			StripeAPI:  stripeAPI,
 			httpClient: httpClient,
 		}
+		payoutWorkflow := PayoutWorkflow{
+			DineroAPI: api,
+			StripeAPI: stripeAPI,
+		}
 
 		var e stripe.Event
 		if appengine.IsDevAppServer() {
@@ -54,25 +58,10 @@ func webhookReceiver() httprouter.Handle {
 				go slackLogging(httpClient, "Problems constructing Payout event", err.Error(), "Event error - Payout", "#CF0003")
 				return
 			}
-			params := &stripe.BalanceTransactionListParams{}
-			params.Payout = stripe.String(p.ID)
 
-			i := stripeAPI.Balance.List(params)
-
-			var feeAmount int64
-			for i.Next() {
-				bt := i.BalanceTransaction()
-				feeAmount += bt.Fee
-			}
-
-			amount := float64(p.Amount) / 100
-			fee := float64(feeAmount) / 100
-
-			err := api.AddStripePayout(p.ID, amount, fee)
-
-			if err != nil {
+			if err := payoutWorkflow.HandleStripePayout(p); err != nil {
 				errorHandling(w, err)
-				go slackLogging(httpClient, "Stripe Payout", err.Error(), "Failed to update ledger in Dinero", "#CF0003")
+				go slackLogging(httpClient, "Stripe Payout", err.Error(), "", "#CF0003")
 				return
 			}
 

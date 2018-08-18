@@ -123,6 +123,29 @@ func (workflow *ProgramWorkFlow) CreatePayment(o stripe.Order) error {
 	return nil
 }
 
+var invoiceText = `
+Hej %s
+
+Tillykke med beslutningen om at blive en stærk og funktionel badass! Dit træningsprogram kan du download her: %s
+
+Med træningsprogrammet er du også blevet en del af et fællesskab, hvor vi støtter, hjælper, hepper på og motiverer hinanden. Fællesskabet er udelukkende for andre som har købt programmet og træner mod samme mål. Meld dig ind med det samme lige her: http://bit.ly/2Kb9B2g
+
+Jeg har lavet videoer af alle øvelserne så du aldrig skal være i tvivl om hvordan du gør. Dem finder du på min YouTube kanal her: http://bit.ly/2Ol7yM4
+
+Jeg vil anbefale at du gemmer linket til YouTube-kanalen som bogmærke på din telefon, så du altid har det lige ved hånden.
+
+Læs det hele igennem og skriv endelig til mig i Facebook gruppen hvis du har nogen spørgsmål. Ellers er det bare om at komme i gang - hvad med at starte allerede i morgen?
+
+Ps. jeg har også vedhæftet fakturaen for dit køb på %v inkl. moms.
+
+[link-to-pdf]
+
+Rigtig god træning!
+
+Kærlig hilsen
+Camilla
+`
+
 // FulfillWorkflow finalizes the workflow
 func (workflow *ProgramWorkFlow) FulfillWorkflow(o stripe.Order) error {
 	order, err := workflow.StripeAPI.Orders.Get(o.ID, nil)
@@ -135,7 +158,12 @@ func (workflow *ProgramWorkFlow) FulfillWorkflow(o stripe.Order) error {
 	}
 
 	invoiceID := o.Metadata["invoiceID"]
-	if err := workflow.DineroAPI.SendInvoice(invoiceID); err != nil {
+	name := o.Metadata["name"]
+	amount := float64(o.Amount) / 100
+	downloadLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%v", o.ID)
+	text := fmt.Sprintf(invoiceText, name, downloadLink, amount)
+
+	if err := workflow.DineroAPI.SendInvoice(invoiceID, "Her er dit program :-)", text); err != nil {
 		return fmt.Errorf("Dinero API - Error sending email: %s", err.Error())
 	}
 

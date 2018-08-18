@@ -119,8 +119,13 @@ func (api *dineroAPI) CreatePayment(invoiceID string, amount int64) error {
 	return nil
 }
 
-func (api *dineroAPI) SendInvoice(invoiceID string) error {
-	_, err := invoices.SendEmail(api, invoiceID, invoices.SendInvoice{})
+func (api *dineroAPI) SendInvoice(invoiceID, subject, text string) error {
+	params := invoices.SendInvoice{
+		Subject:                subject,
+		Message:                text,
+		AddVoucherAsAttachment: true,
+	}
+	_, err := invoices.SendEmail(api, invoiceID, params)
 	if err != nil {
 		return err
 	}

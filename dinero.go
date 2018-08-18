@@ -157,7 +157,8 @@ func (api *dineroAPI) AddStripePayout(payoutID string, amount, fee float64) erro
 		},
 	}
 
-	_, err := ledgeritems.Create(api, ledgerItems)
+	items, err := ledgeritems.Create(api, ledgerItems)
+	err = ledgeritems.Book(api, items)
 
 	return err
 }

@@ -53,7 +53,7 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 	}
 
 	if order.Status == string(stripe.OrderStatusFulfilled) {
-		f, err := os.Open("./faktura-2.pdf")
+		f, err := os.Open("./stærkogfunktionelbadasstræningsprogram.pdf")
 		if err != nil {
 			w.WriteHeader(404)
 			fmt.Fprintf(w, "404 page not found")
@@ -62,7 +62,7 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 		defer f.Close()
 
 		w.Header().Add("Content-Type", "application/pdf")
-		w.Header().Add("Content-Disposition", `inline; filename="filename.pdf"`)
+		w.Header().Add("Content-Disposition", `inline; filename="stærkogfunktionelbadasstræningsprogram.pdf"`)
 		w.WriteHeader(200)
 		io.Copy(w, f)
 		return

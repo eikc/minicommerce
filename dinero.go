@@ -19,6 +19,11 @@ type invoiceCreated struct {
 	Timestamp string
 }
 
+type InvoiceLine struct {
+	Description string
+	Amount      int64
+}
+
 func (api *dineroAPI) CreateCustomer(email, name, address string) (string, error) {
 	cParams := contacts.ContactParams{
 		IsPerson:             true,
@@ -37,23 +42,29 @@ func (api *dineroAPI) CreateCustomer(email, name, address string) (string, error
 	return c.ID, nil
 }
 
-func (api *dineroAPI) CreateInvoice(customerID, description string, amount int64) (*invoiceCreated, error) {
+func (api *dineroAPI) CreateInvoice(customerID string, lines []InvoiceLine) (*invoiceCreated, error) {
+	var invoiceLines []invoices.InvoiceLine
+
+	for _, l := range lines {
+		invoiceLine := invoices.InvoiceLine{
+			AccountNumber:   1000,
+			Quantity:        1,
+			BaseAmountValue: float64(l.Amount) / 100,
+			Description:     l.Description,
+			LineType:        "Product",
+			Unit:            "parts",
+		}
+
+		invoiceLines = append(invoiceLines, invoiceLine)
+	}
+
 	invoiceParams := invoices.CreateInvoice{
 		ContactID:        customerID,
 		ShowLinesInclVat: true,
 		Currency:         "DKK",
 		Language:         "da-DK",
 		Date:             dinero.DateNow(),
-		ProductLines: []invoices.InvoiceLine{
-			invoices.InvoiceLine{
-				BaseAmountValue: float64((amount / 100)),
-				Quantity:        1,
-				AccountNumber:   1000,
-				Description:     description,
-				LineType:        "Product",
-				Unit:            "parts",
-			},
-		},
+		ProductLines:     invoiceLines,
 	}
 
 	timestamp, err := invoices.Save(api, invoiceParams)

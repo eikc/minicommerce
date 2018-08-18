@@ -63,7 +63,12 @@ func (workflow *ProgramWorkFlow) CreateInvoice(o stripe.Order) error {
 	customerID := o.Metadata["customer"]
 	amount := o.Amount
 	productName := o.Items[0].Description
-	invoice, err := workflow.DineroAPI.CreateInvoice(customerID, productName, amount)
+
+	lines := []InvoiceLine{
+		InvoiceLine{productName, amount},
+	}
+
+	invoice, err := workflow.DineroAPI.CreateInvoice(customerID, lines)
 	if err != nil {
 		return fmt.Errorf("Dinero API - Creating invoice: %s", err.Error())
 	}
@@ -126,7 +131,7 @@ func (workflow *ProgramWorkFlow) CreatePayment(o stripe.Order) error {
 var invoiceText = `
 Hej %s
 
-Tillykke med beslutningen om at blive en stærk og funktionel badass! Dit træningsprogram kan du download her: %s
+Tillykke med beslutningen om at blive en stærk og funktionel badass! Dit træningsprogram kan du downloade her: %s
 
 Med træningsprogrammet er du også blevet en del af et fællesskab, hvor vi støtter, hjælper, hepper på og motiverer hinanden. Fællesskabet er udelukkende for andre som har købt programmet og træner mod samme mål. Meld dig ind med det samme lige her: http://bit.ly/2Kb9B2g
 
@@ -136,7 +141,7 @@ Jeg vil anbefale at du gemmer linket til YouTube-kanalen som bogmærke på din t
 
 Læs det hele igennem og skriv endelig til mig i Facebook gruppen hvis du har nogen spørgsmål. Ellers er det bare om at komme i gang - hvad med at starte allerede i morgen?
 
-Ps. jeg har også vedhæftet fakturaen for dit køb på %v inkl. moms.
+Ps. jeg har også vedhæftet fakturaen for dit køb på %v,- kr inkl. moms.
 
 [link-to-pdf]
 

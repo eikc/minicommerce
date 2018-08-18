@@ -53,7 +53,7 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 	}
 
 	if order.Status == string(stripe.OrderStatusFulfilled) {
-		f, err := os.Open("./stærkogfunktionelbadasstræningsprogram.pdf")
+		f, err := os.Open("./strong-badass-program.pdf")
 		if err != nil {
 			w.WriteHeader(404)
 			fmt.Fprintf(w, "404 page not found")

@@ -2,7 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+
+	"github.com/stripe/stripe-go"
 
 	"github.com/rs/cors"
 	"google.golang.org/appengine"
@@ -48,6 +52,22 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 		return
 	}
 
-	w.WriteHeader(200)
-	fmt.Fprintln(w, "ID is: ", order.ID)
+	if order.Status == string(stripe.OrderStatusFulfilled) {
+		f, err := os.Open("./faktura-2.pdf")
+		if err != nil {
+			w.WriteHeader(404)
+			fmt.Fprintf(w, "404 page not found")
+			return
+		}
+		defer f.Close()
+
+		w.Header().Add("Content-Type", "application/pdf")
+		w.Header().Add("Content-Disposition", `inline; filename="filename.pdf"`)
+		w.WriteHeader(200)
+		io.Copy(w, f)
+		return
+	}
+
+	w.WriteHeader(404)
+	fmt.Fprintf(w, "404 page not found")
 }

@@ -12,6 +12,15 @@ import (
 	"google.golang.org/appengine/urlfetch"
 )
 
+type Bootcamp struct {
+	ID        string
+	Date      string
+	Location  string
+	StartsAt  string
+	Focus     string
+	SpotsLeft int64
+}
+
 func bootcamp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 	api := getStripe(ctx)
@@ -29,9 +38,10 @@ func bootcamp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		date := x.Attributes["date"]
 		location := x.Attributes["location"]
 		startsAt := x.Attributes["StartsAt"]
-		res, _ := time.Parse("2006-01-02", date)
+		focus := x.Attributes["fokus"]
+		res, _ := time.Parse("02-01-2006", date)
 		if res.After(time.Now()) {
-			b := Bootcamp{x.ID, date, location, startsAt, x.Inventory.Quantity}
+			b := Bootcamp{x.ID, date, location, startsAt, focus, x.Inventory.Quantity}
 			bootcamps = append(bootcamps, b)
 		}
 	}

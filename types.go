@@ -18,11 +18,3 @@ type Settings struct {
 	StripeWebhookSignature string
 	InstagramToken         string
 }
-
-type Bootcamp struct {
-	ID        string
-	Date      string
-	Location  string
-	StartsAt  string
-	SpotsLeft int64
-}

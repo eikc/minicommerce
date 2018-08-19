@@ -52,6 +52,7 @@ func create() httprouter.Handle {
 		params.AddMetadata("address", o.Address)
 		params.AddMetadata("token", o.StripeToken)
 		params.AddMetadata("email", o.Email)
+		params.AddMetadata("ordertype", "badass")
 
 		_, err = stripeAPI.Orders.New(params)
 		if err != nil {

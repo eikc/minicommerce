@@ -21,14 +21,28 @@ func webhookReceiver() httprouter.Handle {
 		httpClient := urlfetch.Client(c)
 		api := getClient(c)
 		stripeAPI := getStripe(c)
-		programWorkflow := ProgramWorkFlow{
-			DineroAPI:  api,
-			StripeAPI:  stripeAPI,
-			httpClient: httpClient,
-		}
 		payoutWorkflow := PayoutWorkflow{
 			DineroAPI: api,
 			StripeAPI: stripeAPI,
+		}
+
+		programWorkflow := &ProgramWorkFlow{
+			DineroAPI: api,
+			StripeAPI: stripeAPI,
+		}
+		bootcampWorkflow := &BootcampWorkflow{
+			DineroAPI: api,
+			StripeAPI: stripeAPI,
+		}
+
+		workflow := Workflow{
+			Fulfillments: map[string]Fulfillment{
+				"badass":   programWorkflow,
+				"bootcamp": bootcampWorkflow,
+			},
+			DineroAPI:  api,
+			StripeAPI:  stripeAPI,
+			httpClient: httpClient,
 		}
 
 		var e stripe.Event
@@ -80,7 +94,6 @@ func webhookReceiver() httprouter.Handle {
 				return
 			}
 
-			fmt.Println("yes an order created, paying the order")
 			token := o.Metadata["token"]
 			op := &stripe.OrderPayParams{}
 			op.SetSource(token) // obtained with Stripe.js
@@ -122,7 +135,7 @@ func webhookReceiver() httprouter.Handle {
 				return
 			}
 
-			workflow, err := programWorkflow.StartFlow(o)
+			workflow, err := workflow.StartFlow(o)
 			if err != nil {
 				errorHandling(w, err)
 				slackLogging(httpClient,

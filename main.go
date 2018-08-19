@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -52,7 +51,7 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 		return
 	}
 
-	if order.Status == string(stripe.OrderStatusFulfilled) {
+	if order.Status != string(stripe.OrderStatusReturned) {
 		f, err := os.Open("./strong-badass-program.pdf")
 		if err != nil {
 			w.WriteHeader(404)
@@ -62,9 +61,9 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 		defer f.Close()
 
 		w.Header().Add("Content-Type", "application/pdf")
-		w.Header().Add("Content-Disposition", `inline; filename="stærkogfunktionelbadasstræningsprogram.pdf"`)
+		w.Header().Add("Content-Disposition", "inline; filename=staerk-og-funktionel-badass.pdf")
 		w.WriteHeader(200)
-		io.Copy(w, f)
+		http.ServeFile(w, r, f.Name())
 		return
 	}
 

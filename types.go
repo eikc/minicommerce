@@ -19,15 +19,6 @@ type Settings struct {
 	InstagramToken         string
 }
 
-type order struct {
-	Name        string
-	Address     string
-	Email       string
-	StripeToken string
-	SKU         string
-	Newsletter  bool
-}
-
 type Bootcamp struct {
 	ID        string
 	Date      string

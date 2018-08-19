@@ -11,6 +11,15 @@ import (
 	"google.golang.org/appengine/urlfetch"
 )
 
+type order struct {
+	Name        string
+	Address     string
+	Email       string
+	StripeToken string
+	SKU         string
+	Newsletter  bool
+}
+
 func create() httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		c := appengine.NewContext(r)

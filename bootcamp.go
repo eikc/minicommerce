@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -64,10 +65,18 @@ func buyBootcamp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	httpClient := urlfetch.Client(ctx)
 	stripeAPI := getStripe(ctx)
 
-	var o bootcampOrder
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&o)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		slackLogging(httpClient, "Error reading all from request body", err.Error(), "Incomplete order", "#CF0003")
+		errorHandling(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var o bootcampOrder
+	err = json.Unmarshal(body, &o)
+	if err != nil {
+		slackLogging(httpClient, "Error decoding response from bootcamp buy", string(body), "Incomplete order", "#CF0003")
 		errorHandling(w, err)
 		return
 	}

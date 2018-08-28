@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -26,10 +27,19 @@ func create() httprouter.Handle {
 		httpClient := urlfetch.Client(c)
 		stripeAPI := getStripe(c)
 
-		var o order
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&o)
+		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
+			slackLogging(httpClient, "Error reading all from request body", err.Error(), "Incomplete order", "#CF0003")
+			errorHandling(w, err)
+			return
+		}
+
+		defer r.Body.Close()
+
+		var o order
+		err = json.Unmarshal(body, &o)
+		if err != nil {
+			slackLogging(httpClient, "Error decoding response from program buy", string(body), "Incomplete order", "#CF0003")
 			errorHandling(w, err)
 			return
 		}

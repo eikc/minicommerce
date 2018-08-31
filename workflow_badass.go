@@ -7,8 +7,8 @@ import (
 	stripeClient "github.com/stripe/stripe-go/client"
 )
 
-// ProgramWorkFlow handles all actions surrounding the workflow of a program
-type ProgramWorkFlow struct {
+// BadassWorkflow handles all actions surrounding the workflow of a program
+type BadassWorkflow struct {
 	DineroAPI *dineroAPI
 	StripeAPI *stripeClient.API
 }
@@ -37,7 +37,7 @@ Camilla
 `
 
 // FulfillWorkflow finalizes the workflow
-func (workflow *ProgramWorkFlow) FulfillWorkflow(o stripe.Order) error {
+func (workflow *BadassWorkflow) FulfillWorkflow(o stripe.Order) error {
 	order, err := workflow.StripeAPI.Orders.Get(o.ID, nil)
 	if err != nil {
 		return fmt.Errorf("Stripe API - Error getting stripe order: %s", err.Error())

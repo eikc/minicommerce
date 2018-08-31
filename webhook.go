@@ -26,7 +26,7 @@ func webhookReceiver() httprouter.Handle {
 			StripeAPI: stripeAPI,
 		}
 
-		programWorkflow := &ProgramWorkFlow{
+		programWorkflow := &BadassWorkflow{
 			DineroAPI: api,
 			StripeAPI: stripeAPI,
 		}
@@ -35,10 +35,22 @@ func webhookReceiver() httprouter.Handle {
 			StripeAPI: stripeAPI,
 		}
 
+		foodieWorkflow := &FoodieWorkflow{
+			DineroAPI: api,
+			StripeAPI: stripeAPI,
+		}
+
+		bundleWorkflow := &BundleWorkflow{
+			DineroAPI: api,
+			StripeAPI: stripeAPI,
+		}
+
 		workflow := Workflow{
 			Fulfillments: map[string]Fulfillment{
 				"badass":   programWorkflow,
 				"bootcamp": bootcampWorkflow,
+				"foodie":   foodieWorkflow,
+				"bundle":   bundleWorkflow,
 			},
 			DineroAPI:  api,
 			StripeAPI:  stripeAPI,

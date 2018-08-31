@@ -19,6 +19,7 @@ func main() {
 	router.GET("/bootcamp", bootcamp)
 	router.POST("/bootcamp", buyBootcamp)
 	router.GET("/downloads/:orderid", download)
+	router.GET("/downloads/:orderid/:sku", downloadV2)
 
 	handler := cors.Default().Handler(router)
 

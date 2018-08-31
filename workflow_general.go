@@ -46,7 +46,7 @@ func (workflow *Workflow) StartFlow(o stripe.Order) (string, error) {
 }
 
 // CreateCustomer Creates a customer in the given workflow
-func (workflow *ProgramWorkFlow) CreateCustomer(o stripe.Order) error {
+func (workflow *BadassWorkflow) CreateCustomer(o stripe.Order) error {
 	name := o.Metadata["name"]
 	email := o.Metadata["email"]
 	address := o.Metadata["address"]
@@ -72,16 +72,23 @@ func (workflow *Workflow) CreateInvoice(o stripe.Order) error {
 	var lines []InvoiceLine
 
 	for _, l := range o.Items {
-		if l.Type != "sku" {
-			continue
+		if l.Type == "sku" {
+			line := InvoiceLine{
+				Amount:      l.Amount,
+				Description: l.Description,
+			}
+
+			lines = append(lines, line)
 		}
 
-		line := InvoiceLine{
-			Amount:      l.Amount,
-			Description: l.Description,
-		}
+		if l.Type == "discount" {
+			line := InvoiceLine{
+				Amount:      l.Amount,
+				Description: "Rabat",
+			}
 
-		lines = append(lines, line)
+			lines = append(lines, line)
+		}
 	}
 
 	invoice, err := workflow.DineroAPI.CreateInvoice(customerID, lines)

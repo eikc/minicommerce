@@ -17,8 +17,25 @@ type order struct {
 	Address     string
 	Email       string
 	StripeToken string
-	SKU         string
+	SKU         []string
 	Newsletter  bool
+}
+
+func (o order) GetOrderType() string {
+	if len(o.SKU) > 1 {
+		return "bundle"
+	}
+
+	sku := o.SKU[0]
+
+	switch sku {
+	case "sku_DJx1hCHoxDAAtE":
+		return "badass"
+	case "sku_DWJE6B88Ih3Wgg":
+		return "foodie"
+	}
+
+	return ""
 }
 
 func create() httprouter.Handle {
@@ -44,15 +61,23 @@ func create() httprouter.Handle {
 			return
 		}
 
+		var itemsToOrder []*stripe.OrderItemParams
+		for _, s := range o.SKU {
+			item := &stripe.OrderItemParams{
+				Type:   stripe.String(string(stripe.OrderItemTypeSKU)),
+				Parent: stripe.String(s),
+			}
+			itemsToOrder = append(itemsToOrder, item)
+		}
+
 		params := &stripe.OrderParams{
 			Currency: stripe.String(string(stripe.CurrencyDKK)),
 			Email:    stripe.String(o.Email),
-			Items: []*stripe.OrderItemParams{
-				&stripe.OrderItemParams{
-					Type:   stripe.String(string(stripe.OrderItemTypeSKU)),
-					Parent: stripe.String(o.SKU),
-				},
-			},
+			Items:    itemsToOrder,
+		}
+
+		if len(params.Items) == 2 {
+			params.Coupon = stripe.String("3Y9rWEst")
 		}
 
 		mashalledOrder, _ := json.Marshal(o)
@@ -62,7 +87,7 @@ func create() httprouter.Handle {
 		params.AddMetadata("address", o.Address)
 		params.AddMetadata("token", o.StripeToken)
 		params.AddMetadata("email", o.Email)
-		params.AddMetadata("ordertype", "badass")
+		params.AddMetadata("ordertype", o.GetOrderType())
 
 		_, err = stripeAPI.Orders.New(params)
 		if err != nil {

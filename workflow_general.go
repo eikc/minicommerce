@@ -11,7 +11,7 @@ import (
 
 // Fulfillment is how the order is fulfilled
 type Fulfillment interface {
-	FulfillWorkflow(o stripe.Order) error
+	FulfillWorkflow(o stripe.Order) (string, string)
 }
 
 // Workflow is how stripe is used to create a workflow surrounding orders of different types
@@ -35,9 +35,7 @@ func (workflow *Workflow) StartFlow(o stripe.Order) (string, error) {
 	case invoiceBookedStatus:
 		err = workflow.CreatePayment(o)
 	case invoicePaidStatus:
-		ordertype := o.Metadata["ordertype"]
-		handler := workflow.Fulfillments[ordertype]
-		err = handler.FulfillWorkflow(o)
+		err = workflow.SendInvoice(o)
 	case invoiceSentStatus:
 		workflow.CelebrateOrder(o)
 	}
@@ -46,7 +44,7 @@ func (workflow *Workflow) StartFlow(o stripe.Order) (string, error) {
 }
 
 // CreateCustomer Creates a customer in the given workflow
-func (workflow *BadassWorkflow) CreateCustomer(o stripe.Order) error {
+func (workflow *Workflow) CreateCustomer(o stripe.Order) error {
 	name := o.Metadata["name"]
 	email := o.Metadata["email"]
 	address := o.Metadata["address"]
@@ -146,6 +144,40 @@ func (workflow *Workflow) CreatePayment(o stripe.Order) error {
 	_, err := workflow.StripeAPI.Orders.Update(o.ID, &updatedOrder)
 	if err != nil {
 		return fmt.Errorf("Stripe Api - Error updating state to %v", invoicePaidStatus)
+	}
+
+	return nil
+}
+
+func (workflow *Workflow) SendInvoice(o stripe.Order) error {
+	order, err := workflow.StripeAPI.Orders.Get(o.ID, nil)
+	if err != nil {
+		return fmt.Errorf("Stripe API - Error getting stripe order: %s", err.Error())
+	}
+
+	if order.Status == string(stripe.OrderStatusFulfilled) {
+		return nil
+	}
+
+	invoiceID := o.Metadata["invoiceID"]
+	ordertype := o.Metadata["ordertype"]
+	handler := workflow.Fulfillments[ordertype]
+	if handler == nil {
+		return fmt.Errorf("No handler for ordertype")
+	}
+
+	title, text := handler.FulfillWorkflow(o)
+	if err := workflow.DineroAPI.SendInvoice(invoiceID, title, text); err != nil {
+		return fmt.Errorf("Dinero API - Error sending email: %s", err.Error())
+	}
+
+	updatedOrder := stripe.OrderUpdateParams{}
+	updatedOrder.AddMetadata(flowStatus, invoiceSentStatus)
+	updatedOrder.Status = stripe.String(string(stripe.OrderStatusFulfilled))
+
+	_, err = workflow.StripeAPI.Orders.Update(o.ID, &updatedOrder)
+	if err != nil {
+		return fmt.Errorf("Stripe API - Error updating state to %v", invoiceSentStatus)
 	}
 
 	return nil

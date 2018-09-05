@@ -4,53 +4,40 @@ import (
 	"fmt"
 
 	"github.com/stripe/stripe-go"
-	stripeClient "github.com/stripe/stripe-go/client"
 )
 
-// BundleWorkflow handles all actions surrounding the workflow of a bundle
-type FoodieWorkflow struct {
-	DineroAPI *dineroAPI
-	StripeAPI *stripeClient.API
-}
+// FoodieWorkflow handles all actions surrounding the workflow of a bundle
+type FoodieWorkflow struct{}
 
 var foodieText = `
 Hej %s
 
-[link-to-pdf]
+Tillykke med beslutningen om at blive en badass i køkkenet!
+
+E-bogen Camilla’s 15-minute kitchen finder du her: %s
+
+Linket er unikt, kun til dig :-)
+
+Jeg håber at du får glæde af mine opskrifter. Ikke mindst håber jeg også at kunne inspirere til tankegangen om, at du ikke behøver at leve udelukkende af ris og kylling for at opnå dine mål :-)
+
+Rigtig god madlavning!
 
 Kærlig hilsen
 Camilla
+
+______
+
+Ps. jeg har også vedhæftet fakturaen for dit køb på %v,- kr inkl. moms.
+
+[link-to-pdf]
 `
 
 // FulfillWorkflow finalizes the workflow
-func (workflow *FoodieWorkflow) FulfillWorkflow(o stripe.Order) error {
-	order, err := workflow.StripeAPI.Orders.Get(o.ID, nil)
-	if err != nil {
-		return fmt.Errorf("Stripe API - Error getting stripe order: %s", err.Error())
-	}
-
-	if order.Status == string(stripe.OrderStatusFulfilled) {
-		return nil
-	}
-
-	invoiceID := o.Metadata["invoiceID"]
+func (workflow *FoodieWorkflow) FulfillWorkflow(o stripe.Order) (string, string) {
 	name := o.Metadata["name"]
 	amount := float64(o.Amount) / 100
-	downloadLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%v", o.ID)
+	downloadLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%s/%s", o.ID, "sku_DWJE6B88Ih3Wgg")
 	text := fmt.Sprintf(foodieText, name, downloadLink, amount)
 
-	if err := workflow.DineroAPI.SendInvoice(invoiceID, "Her er dit program :-)", text); err != nil {
-		return fmt.Errorf("Dinero API - Error sending email: %s", err.Error())
-	}
-
-	updatedOrder := stripe.OrderUpdateParams{}
-	updatedOrder.AddMetadata(flowStatus, invoiceSentStatus)
-	updatedOrder.Status = stripe.String(string(stripe.OrderStatusFulfilled))
-
-	_, err = workflow.StripeAPI.Orders.Update(o.ID, &updatedOrder)
-	if err != nil {
-		return fmt.Errorf("Stripe API - Error updating state to %v", invoiceSentStatus)
-	}
-
-	return nil
+	return "Her er dit program :-)", text
 }

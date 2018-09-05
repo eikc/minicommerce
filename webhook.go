@@ -25,26 +25,12 @@ func webhookReceiver() httprouter.Handle {
 			DineroAPI: api,
 			StripeAPI: stripeAPI,
 		}
-
-		programWorkflow := &BadassWorkflow{
-			DineroAPI: api,
-			StripeAPI: stripeAPI,
-		}
+		programWorkflow := &BadassWorkflow{}
 		bootcampWorkflow := &BootcampWorkflow{
-			DineroAPI: api,
 			StripeAPI: stripeAPI,
 		}
-
-		foodieWorkflow := &FoodieWorkflow{
-			DineroAPI: api,
-			StripeAPI: stripeAPI,
-		}
-
-		bundleWorkflow := &BundleWorkflow{
-			DineroAPI: api,
-			StripeAPI: stripeAPI,
-		}
-
+		foodieWorkflow := &FoodieWorkflow{}
+		bundleWorkflow := &BundleWorkflow{}
 		workflow := Workflow{
 			Fulfillments: map[string]Fulfillment{
 				"badass":   programWorkflow,
@@ -123,7 +109,7 @@ func webhookReceiver() httprouter.Handle {
 				return
 			}
 
-			err = programWorkflow.CreateCustomer(o)
+			err = workflow.CreateCustomer(o)
 			if err != nil {
 				errorHandling(w, err)
 				slackLogging(httpClient,

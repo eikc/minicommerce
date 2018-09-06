@@ -27,6 +27,15 @@ func (workflow *Workflow) StartFlow(o stripe.Order) (string, error) {
 	flow := o.Metadata[flowStatus]
 	var err error
 
+	oP, err := workflow.StripeAPI.Orders.Get(o.ID, nil)
+	if err != nil {
+		return "", err
+	}
+
+	if oP.Status == string(stripe.OrderStatusCanceled) || oP.Status == string(stripe.OrderStatusReturned) {
+		return "", nil
+	}
+
 	switch flow {
 	case customerCreatedStatus:
 		err = workflow.CreateInvoice(o)

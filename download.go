@@ -74,9 +74,11 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	}
 
 	var found bool
+	description := "program"
 	for _, item := range order.Items {
 		if item.Parent == skuID {
 			found = true
+			description = item.Description
 		}
 	}
 
@@ -90,7 +92,7 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 		defer f.Close()
 
 		w.Header().Add("Content-Type", "application/pdf")
-		w.Header().Add("Content-Disposition", "inline; filename=staerk-og-funktionel-badass.pdf")
+		w.Header().Add("Content-Disposition", fmt.Sprintf("inline; filename=%s.pdf", description))
 		w.WriteHeader(200)
 		http.ServeFile(w, r, f.Name())
 		return

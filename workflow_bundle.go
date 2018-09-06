@@ -46,7 +46,7 @@ Ps. jeg har også vedhæftet fakturaen for dit køb på %v,- kr inkl. moms.
 func (workflow *BundleWorkflow) FulfillWorkflow(o stripe.Order) (string, string) {
 	name := o.Metadata["name"]
 	amount := float64(o.Amount) / 100
-	programLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%s/%s", o.ID, "sku_DPbeuymRt6ohd9")
+	programLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%s/%s", o.ID, "sku_DJx1hCHoxDAAtE")
 	kitchenLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%s/%s", o.ID, "sku_DWJE6B88Ih3Wgg")
 	text := fmt.Sprintf(bundleText, name, programLink, kitchenLink, amount)
 

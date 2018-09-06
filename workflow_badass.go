@@ -39,7 +39,7 @@ Ps. jeg har også vedhæftet fakturaen for dit køb på %v,- kr inkl. moms.
 func (workflow *BadassWorkflow) FulfillWorkflow(o stripe.Order) (string, string) {
 	name := o.Metadata["name"]
 	amount := float64(o.Amount) / 100
-	downloadLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%s/%s", o.ID, "sku_DPbeuymRt6ohd9")
+	downloadLink := fmt.Sprintf("https://app.camillabengtsson.dk/downloads/%s/%s", o.ID, "sku_DJx1hCHoxDAAtE")
 	text := fmt.Sprintf(badassText, name, downloadLink, amount)
 
 	return "Her er dit program :-)", text

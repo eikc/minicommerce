@@ -65,6 +65,9 @@ func (api *dineroAPI) CreateInvoice(customerID string, lines []InvoiceLine) (*in
 		Language:         "da-DK",
 		Date:             dinero.DateNow(),
 		ProductLines:     invoiceLines,
+		PaymentConditions: dinero.PaymentConditions{
+			PaymentConditionType: "Paid",
+		},
 	}
 
 	timestamp, err := invoices.Save(api, invoiceParams)

@@ -198,7 +198,7 @@ func (workflow *Workflow) CelebrateOrder(o stripe.Order) {
 	ordertype := o.Metadata["ordertype"]
 	slackLogging(workflow.httpClient,
 		fmt.Sprintf("Order %s - type %s", o.ID, ordertype),
-		fmt.Sprintf(":gopher_dance: Well done, you just earned: %v DKK and %s will be a badass :gopher_dance:", o.Amount/100, name),
+		fmt.Sprintf("Well done, you just earned: %v DKK and %s will be a badass", o.Amount/100, name),
 		"Completed",
 		"#23D1E1")
 }

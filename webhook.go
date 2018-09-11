@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
+
+	"google.golang.org/appengine/log"
 
 	"github.com/julienschmidt/httprouter"
 	stripe "github.com/stripe/stripe-go"
@@ -16,11 +20,13 @@ import (
 func webhookReceiver() httprouter.Handle {
 
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		c := appengine.NewContext(r)
-		s := getSettings(c)
-		httpClient := urlfetch.Client(c)
-		api := getClient(c)
-		stripeAPI := getStripe(c)
+		ctx := appengine.NewContext(r)
+		ctxWithTimeout, _ := context.WithTimeout(ctx, 2*time.Minute)
+		s := getSettings(ctxWithTimeout)
+		httpClient := urlfetch.Client(ctxWithTimeout)
+		api := getClient(ctxWithTimeout)
+		stripeAPI := getStripe(ctxWithTimeout)
+
 		payoutWorkflow := PayoutWorkflow{
 			DineroAPI: api,
 			StripeAPI: stripeAPI,
@@ -135,6 +141,7 @@ func webhookReceiver() httprouter.Handle {
 
 			workflow, err := workflow.StartFlow(o)
 			if err != nil {
+				log.Errorf(ctxWithTimeout, "error is the following: %v", err)
 				errorHandling(w, err)
 				slackLogging(httpClient,
 					fmt.Sprintf("Order %v", o.ID), err.Error(),

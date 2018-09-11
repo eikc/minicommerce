@@ -63,9 +63,8 @@ func slackLogging(httpClient *http.Client, title, text, status, color string) {
 	}
 
 	attachment1 := Attachment{}
-	attachment1.addField(Field{Title: "Title", Value: title})
-	attachment1.addField(Field{Title: "Status", Value: status})
-	attachment1.addField(Field{Title: "Extra info", Value: text})
+	attachment1.Title = stripe.String(text)
+	attachment1.Text = stripe.String(fmt.Sprintf("%s - %s", title, status))
 	attachment1.AuthorIcon = stripe.String(":gopher_dance:")
 	attachment1.Color = stripe.String(color)
 

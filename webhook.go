@@ -21,7 +21,9 @@ func webhookReceiver() httprouter.Handle {
 
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		ctx := appengine.NewContext(r)
-		ctxWithTimeout, _ := context.WithTimeout(ctx, 2*time.Minute)
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Minute)
+		defer cancel()
+
 		s := getSettings(ctxWithTimeout)
 		httpClient := urlfetch.Client(ctxWithTimeout)
 		api := getClient(ctxWithTimeout)

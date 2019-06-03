@@ -35,7 +35,7 @@ func (o order) GetOrderType() string {
 		return "foodie"
 	}
 
-	return ""
+	return "onlineBootcamp"
 }
 
 func create() httprouter.Handle {

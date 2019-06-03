@@ -21,6 +21,10 @@ func main() {
 	router.GET("/downloads/:orderid", download)
 	router.GET("/downloads/:orderid/:sku", downloadV2)
 
+	if appengine.IsDevAppServer() {
+		router.GET("/bootstrap", bootstrap)
+	}
+
 	handler := cors.Default().Handler(router)
 
 	http.Handle("/", handler)

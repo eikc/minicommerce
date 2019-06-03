@@ -39,12 +39,15 @@ func webhookReceiver() httprouter.Handle {
 		}
 		foodieWorkflow := &FoodieWorkflow{}
 		bundleWorkflow := &BundleWorkflow{}
+		onlineBootcamp := &OnlineBootcamp{}
+
 		workflow := Workflow{
 			Fulfillments: map[string]Fulfillment{
-				"badass":   programWorkflow,
-				"bootcamp": bootcampWorkflow,
-				"foodie":   foodieWorkflow,
-				"bundle":   bundleWorkflow,
+				"badass":         programWorkflow,
+				"bootcamp":       bootcampWorkflow,
+				"foodie":         foodieWorkflow,
+				"bundle":         bundleWorkflow,
+				"onlineBootcamp": onlineBootcamp,
 			},
 			DineroAPI:  api,
 			StripeAPI:  stripeAPI,

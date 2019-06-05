@@ -13,12 +13,13 @@ import (
 )
 
 type order struct {
-	Name        string
-	Address     string
-	Email       string
-	StripeToken string
-	SKU         []string
-	Newsletter  bool
+	Name        string   `json:"name,omitempty"`
+	Address     string   `json:"address,omitempty"`
+	Tshirt      string   `json:"tshirt,omitempty"`
+	Email       string   `json:"email,omitempty"`
+	StripeToken string   `json:"stripeToken,omitempty"`
+	SKU         []string `json:"sku,omitempty"`
+	Newsletter  bool     `json:"newsletter,omitempty"`
 }
 
 func (o order) GetOrderType() string {
@@ -87,6 +88,7 @@ func create() httprouter.Handle {
 		params.AddMetadata("address", o.Address)
 		params.AddMetadata("token", o.StripeToken)
 		params.AddMetadata("email", o.Email)
+		params.AddMetadata("tshirt", o.Tshirt)
 		params.AddMetadata("ordertype", o.GetOrderType())
 
 		_, err = stripeAPI.Orders.New(params)

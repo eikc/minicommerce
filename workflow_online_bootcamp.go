@@ -7,7 +7,7 @@ import (
 	stripeClient "github.com/stripe/stripe-go/client"
 )
 
-// FoodieWorkflow handles all actions surrounding the workflow of a bundle
+// OnlineBootcamp handles all actions surrounding the workflow of a bundle
 type OnlineBootcamp struct {
 	StripeAPI *stripeClient.API
 }
@@ -15,12 +15,18 @@ type OnlineBootcamp struct {
 var onlineBootcampText = `
 Hej %s
 
-ONLINE BOOTCAMP!! OHH YES!
+Tak for din tilmelding til Boss Babes Online Bootcamp. Vi glæder os virkelig meget til 4 uger sammen med dig.
 
-Facebook gruppen findes her: %s
+Du kan tilmelde dig Facebook gruppen for månedens bootcamp her: %s
 
-Kærlig hilsen
-Rasmus & Camilla
+Det er super vigtigt at du tilmelder dig gruppen med det samme, da alt du behøver at vide bliver delt inde i gruppen.
+
+Dit træningsprogram og kostplan bliver uploadet i gruppen i weekenden før bootcampen starter.
+
+Rigtig god træning indtil da 💪
+
+Kh
+Rasmus og Camilla
 
 ______
 

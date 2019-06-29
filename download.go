@@ -25,7 +25,7 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 	if order.Status != string(stripe.OrderStatusReturned) {
 		var found bool
 		for _, item := range order.Items {
-			if item.Parent == "sku_DJx1hCHoxDAAtE" {
+			if item.Parent.SKU.ID == "sku_DJx1hCHoxDAAtE" {
 				found = true
 			}
 		}
@@ -76,7 +76,7 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	var found bool
 	description := "program"
 	for _, item := range order.Items {
-		if item.Parent == skuID {
+		if item.Parent.SKU.ID == skuID {
 			found = true
 			description = item.Description
 		}

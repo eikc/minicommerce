@@ -7,9 +7,7 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
-	stripe "github.com/stripe/stripe-go"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
+	"github.com/stripe/stripe-go"
 )
 
 type order struct {
@@ -41,9 +39,9 @@ func (o order) GetOrderType() string {
 
 func create() httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		c := appengine.NewContext(r)
-		httpClient := urlfetch.Client(c)
-		stripeAPI := getStripe(c)
+		ctx := r.Context()
+		httpClient := getHttpClient()
+		stripeAPI := getStripe(ctx)
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {

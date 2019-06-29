@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
@@ -87,9 +88,9 @@ func getProfile(token string, httpClient *http.Client) (*UserResponse, error) {
 func instagram(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 	client := urlfetch.Client(ctx)
-	settings := getSettings(ctx)
+	instragramToken := os.Getenv("instagram")
 
-	url := fmt.Sprint("https://api.instagram.com/v1/users/self/media/recent/?access_token=", settings.InstagramToken)
+	url := fmt.Sprint("https://api.instagram.com/v1/users/self/media/recent/?access_token=", instragramToken)
 
 	resp, err := client.Get(url)
 	if err != nil {

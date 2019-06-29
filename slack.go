@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	stripe "github.com/stripe/stripe-go"
-	"google.golang.org/appengine"
+	"github.com/stripe/stripe-go"
 )
 
 type Field struct {
@@ -57,7 +56,7 @@ func slackLogging(httpClient *http.Client, title, text, status, color string) {
 	channel := "#logging"
 	url := "https://hooks.slack.com/services/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"
 
-	if appengine.IsDevAppServer() {
+	if isDevelopmentServer() {
 		channel = "Eikster"
 		url = "https://hooks.slack.com/services/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"
 	}

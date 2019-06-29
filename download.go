@@ -6,13 +6,12 @@ import (
 	"os"
 
 	"github.com/julienschmidt/httprouter"
-	stripe "github.com/stripe/stripe-go"
-	"google.golang.org/appengine"
+	"github.com/stripe/stripe-go"
 )
 
 func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	orderID := params.ByName("orderid")
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 	stripeAPI := getStripe(ctx)
 
 	order, err := stripeAPI.Orders.Get(orderID, nil)
@@ -55,7 +54,7 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	orderID := params.ByName("orderid")
 	skuID := params.ByName("sku")
 
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 
 	stripeAPI := getStripe(ctx)
 

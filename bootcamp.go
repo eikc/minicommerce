@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	stripe "github.com/stripe/stripe-go"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
+	"github.com/stripe/stripe-go"
 )
 
 type Bootcamp struct {
@@ -23,7 +21,7 @@ type Bootcamp struct {
 }
 
 func bootcamp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
+	ctx :=  r.Context()
 	api := getStripe(ctx)
 
 	params := &stripe.SKUListParams{}
@@ -61,8 +59,9 @@ type bootcampOrder struct {
 }
 
 func buyBootcamp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-	httpClient := urlfetch.Client(ctx)
+	ctx := r.Context()
+
+	httpClient := getHttpClient()
 	stripeAPI := getStripe(ctx)
 
 	body, err := ioutil.ReadAll(r.Body)

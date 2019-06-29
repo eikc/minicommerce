@@ -5,11 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/rs/cors"
-	"google.golang.org/appengine"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -39,9 +38,16 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "test")
 }
 
-func bootstrap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-	initDevelopmentSettings(ctx)
+func getHttpClient() *http.Client {
+	return &http.Client{Timeout: time.Second * 60}
+}
 
-	fmt.Fprint(w, "test")
+func isDevelopmentServer() bool {
+	env := os.Getenv("ENVIRONMENT")
+
+	if env == "production" {
+		return false
+	}
+
+	return true
 }

@@ -6,28 +6,27 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"google.golang.org/appengine/log"
 
 	"github.com/julienschmidt/httprouter"
-	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/webhook"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
 )
 
 func webhookReceiver() httprouter.Handle {
 
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		ctx := appengine.NewContext(r)
+		ctx := r.Context()
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
 
-		s := getSettings(ctxWithTimeout)
-		httpClient := urlfetch.Client(ctxWithTimeout)
+		httpClient := getHttpClient()
 		api := getClient(ctxWithTimeout)
 		stripeAPI := getStripe(ctxWithTimeout)
+		stripeWebhookSignature := os.Getenv("StripeWebhookSignature")
 
 		payoutWorkflow := PayoutWorkflow{
 			DineroAPI: api,
@@ -57,7 +56,7 @@ func webhookReceiver() httprouter.Handle {
 		}
 
 		var e stripe.Event
-		if appengine.IsDevAppServer() {
+		if isDevelopmentServer() {
 			decoder := json.NewDecoder(r.Body)
 			decoder.Decode(&e)
 		} else {
@@ -67,7 +66,7 @@ func webhookReceiver() httprouter.Handle {
 				slackLogging(httpClient, "Problems parsing body of request", err.Error(), "Error with parsing", "#CF0003")
 				return
 			}
-			e, err = webhook.ConstructEvent(body, r.Header.Get("Stripe-Signature"), s.StripeWebhookSignature)
+			e, err = webhook.ConstructEvent(body, r.Header.Get("Stripe-Signature"), stripeWebhookSignature)
 			if err != nil {
 				errorHandling(w, err)
 				slackLogging(httpClient, "Problems constructing stripe event", err.Error(), "Event Error", "#CF0003")

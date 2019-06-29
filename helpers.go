@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 
 	dinero "github.com/eikc/dinero-go"
 	stripe "github.com/stripe/stripe-go"
@@ -14,20 +16,20 @@ import (
 )
 
 func getClient(ctx context.Context) *dineroAPI {
-	key := datastore.NewKey(ctx, "settings", "settings", 0, nil)
+	apiKey := os.Getenv("CLIENTAPIKEY")
+	clientKey := os.Getenv("CLIENTKEY")
+	clientSecret :=os.Getenv("CLIENTSECRET")
+	organizationID, _ := strconv.ParseInt(os.Getenv("CLIENTORGANIZATIONID"), 10, 64)
 
-	var s Settings
-	datastore.Get(ctx, key, &s)
 
-	httpClient := urlfetch.Client(ctx)
-	dineroClient := dinero.NewClient(s.ClientKey, s.ClientSecret, httpClient)
+	httpClient := getHttpClient()
+	dineroClient := dinero.NewClient(clientKey, clientSecret, httpClient)
 
-	log.Debugf(ctx, "%v", s)
 	api := dineroAPI{
 		API: dineroClient,
 	}
 
-	if err := api.Authorize(s.APIKey, s.OrganizationID); err != nil {
+	if err := api.Authorize(apiKey, int(organizationID)); err != nil {
 		log.Criticalf(ctx, "Can't authorize with dinero, settings: %v - err: %v", s, err)
 		panic(err)
 	}
@@ -36,10 +38,10 @@ func getClient(ctx context.Context) *dineroAPI {
 }
 
 func getStripe(ctx context.Context) *stripeClient.API {
-	httpClient := urlfetch.Client(ctx)
-	s := getSettings(ctx)
+	httpClient := getHttpClient()
+	stripeKey := os.Getenv("STRIPEKEY")
 
-	sc := stripeClient.New(s.StripeKey, stripe.NewBackends(httpClient))
+	sc := stripeClient.New(stripeKey, stripe.NewBackends(httpClient))
 
 	return sc
 }

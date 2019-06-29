@@ -7,12 +7,9 @@ import (
 	"os"
 	"strconv"
 
-	dinero "github.com/eikc/dinero-go"
-	stripe "github.com/stripe/stripe-go"
+	"github.com/eikc/dinero-go"
+	"github.com/stripe/stripe-go"
 	stripeClient "github.com/stripe/stripe-go/client"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/urlfetch"
 )
 
 func getClient(ctx context.Context) *dineroAPI {
@@ -30,7 +27,6 @@ func getClient(ctx context.Context) *dineroAPI {
 	}
 
 	if err := api.Authorize(apiKey, int(organizationID)); err != nil {
-		log.Criticalf(ctx, "Can't authorize with dinero, settings: %v - err: %v", s, err)
 		panic(err)
 	}
 

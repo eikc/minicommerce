@@ -75,9 +75,14 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	var found bool
 	description := "program"
 	for _, item := range order.Items {
-		if item.Parent.SKU.ID == skuID {
+		if item.Type != stripe.OrderItemTypeSKU {
+			continue
+		}
+
+		if item.Parent.ID == skuID {
 			found = true
 			description = item.Description
+			break
 		}
 	}
 

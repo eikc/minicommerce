@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/rs/cors"
 	"google.golang.org/appengine"
@@ -21,14 +23,16 @@ func main() {
 	router.GET("/downloads/:orderid", download)
 	router.GET("/downloads/:orderid/:sku", downloadV2)
 
-	if appengine.IsDevAppServer() {
-		router.GET("/bootstrap", bootstrap)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
 	}
 
 	handler := cors.Default().Handler(router)
 
-	http.Handle("/", handler)
-	appengine.Main()
+	log.Printf("Listening on port %s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), handler))
 }
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

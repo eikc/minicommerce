@@ -7,5 +7,6 @@ require (
 	github.com/rs/cors v1.6.0
 	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/stripe/stripe-go v61.9.0+incompatible
-	google.golang.org/appengine v1.6.1
+	golang.org/x/net v0.0.0-20190603091049-60506f45cf65 // indirect
+	golang.org/x/text v0.3.2 // indirect
 )

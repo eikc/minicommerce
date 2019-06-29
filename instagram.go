@@ -8,9 +8,6 @@ import (
 	"os"
 
 	"github.com/julienschmidt/httprouter"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/urlfetch"
 )
 
 type MetaResponse struct {
@@ -86,15 +83,13 @@ func getProfile(token string, httpClient *http.Client) (*UserResponse, error) {
 }
 
 func instagram(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-	client := urlfetch.Client(ctx)
+	client := getHttpClient()
 	instragramToken := os.Getenv("instagram")
 
 	url := fmt.Sprint("https://api.instagram.com/v1/users/self/media/recent/?access_token=", instragramToken)
 
 	resp, err := client.Get(url)
 	if err != nil {
-		log.Errorf(ctx, "instagram error occured! %v", err)
 		errorHandling(w, err)
 		return
 	}
@@ -102,14 +97,12 @@ func instagram(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf(ctx, "instagram error occured! %v", err)
 		errorHandling(w, err)
 		return
 	}
 
 	var userResp UserResponse
 	if err := json.Unmarshal(b, &userResp); err != nil {
-		log.Errorf(ctx, "instagram error occured! %v", err)
 		errorHandling(w, err)
 		return
 	}
@@ -118,7 +111,6 @@ func instagram(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	json, err := json.Marshal(userResp.User)
 	if err != nil {
-		log.Errorf(ctx, "instagram error occured! %v", err)
 		errorHandling(w, err)
 		return
 	}

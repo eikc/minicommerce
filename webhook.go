@@ -9,8 +9,6 @@ import (
 	"os"
 	"time"
 
-	"google.golang.org/appengine/log"
-
 	"github.com/julienschmidt/httprouter"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/webhook"
@@ -147,7 +145,6 @@ func webhookReceiver() httprouter.Handle {
 
 			workflow, err := workflow.StartFlow(o)
 			if err != nil {
-				log.Errorf(ctxWithTimeout, "error is the following: %v", err)
 				errorHandling(w, err)
 				slackLogging(httpClient,
 					fmt.Sprintf("Order %v", o.ID), err.Error(),

@@ -2,8 +2,8 @@ github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc h1:cAKDfWh5Vpd
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/eikc/dinero-go v0.0.0-20190628140819-89729234e14c h1:xGsFIKqgcFYGpwnu5PrvlalNtTMkMgnFUc45blHRMG4=
-github.com/eikc/dinero-go v0.0.0-20190628140819-89729234e14c/go.mod h1:lf1UNyxiOoWZwy53FVNi1UFJTi3IUohLv2BXaz4DpgQ=
+github.com/eikc/dinero-go v0.6.0 h1:/Gip1pPbZoM0BRqRG08qeBp2ct/08CqLdKhyTn/g5o8=
+github.com/eikc/dinero-go v0.6.0/go.mod h1:lf1UNyxiOoWZwy53FVNi1UFJTi3IUohLv2BXaz4DpgQ=
 github.com/julienschmidt/httprouter v1.2.0 h1:TDTW5Yz1mjftljbcKqRcrYhd4XeOoI98t+9HbQbYf7g=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

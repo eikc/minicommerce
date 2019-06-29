@@ -15,9 +15,8 @@ import (
 func getClient(ctx context.Context) *dineroAPI {
 	apiKey := os.Getenv("CLIENTAPIKEY")
 	clientKey := os.Getenv("CLIENTKEY")
-	clientSecret :=os.Getenv("CLIENTSECRET")
+	clientSecret := os.Getenv("CLIENTSECRET")
 	organizationID, _ := strconv.ParseInt(os.Getenv("CLIENTORGANIZATIONID"), 10, 64)
-
 
 	httpClient := getHttpClient()
 	dineroClient := dinero.NewClient(clientKey, clientSecret, httpClient)

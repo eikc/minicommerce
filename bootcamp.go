@@ -21,7 +21,7 @@ type Bootcamp struct {
 }
 
 func bootcamp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx :=  r.Context()
+	ctx := r.Context()
 	api := getStripe(ctx)
 
 	params := &stripe.SKUListParams{}

@@ -97,7 +97,6 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 
 		w.Header().Add("Content-Type", "application/pdf")
 		w.Header().Add("Content-Disposition", fmt.Sprintf("inline; filename=%s.pdf", description))
-		w.WriteHeader(200)
 		http.ServeFile(w, r, f.Name())
 		return
 	}

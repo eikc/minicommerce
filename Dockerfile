@@ -1,12 +1,9 @@
 FROM golang:1.12 as build-env
-ENV GO111MODULE=on
 
 WORKDIR /app
 ADD . /app
 
-RUN go mod download
-RUN go build
-RUN ls /app
+RUN go mod download && go build
 
 FROM gcr.io/distroless/base
 COPY --from=build-env /app/miniCommerce /miniCommerce

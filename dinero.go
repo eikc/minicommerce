@@ -6,7 +6,7 @@ import (
 	"github.com/eikc/dinero-go"
 	"github.com/eikc/dinero-go/contacts"
 	"github.com/eikc/dinero-go/invoices"
-	"github.com/eikc/dinero-go/ledgeritems"
+	"github.com/eikc/dinero-go/ledgerItems"
 )
 
 type dineroAPI struct {

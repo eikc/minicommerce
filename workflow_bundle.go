@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/stripe/stripe-go"
 )
@@ -51,4 +52,8 @@ func (workflow *BundleWorkflow) FulfillWorkflow(o stripe.Order) (string, string)
 	text := fmt.Sprintf(bundleText, name, programLink, kitchenLink, amount)
 
 	return "Her er dine programmer :-)", text
+}
+
+func (workflow *BundleWorkflow) GetTemplate() string {
+	return os.Getenv("TEMPLATE_ONE")
 }

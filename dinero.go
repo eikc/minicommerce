@@ -42,7 +42,7 @@ func (api *dineroAPI) CreateCustomer(email, name, address string) (string, error
 	return c.ID, nil
 }
 
-func (api *dineroAPI) CreateInvoice(customerID string, lines []InvoiceLine) (*invoiceCreated, error) {
+func (api *dineroAPI) CreateInvoice(customerID string, lines []InvoiceLine, invoiceTemplateId string) (*invoiceCreated, error) {
 	var invoiceLines []invoices.InvoiceLine
 
 	for _, l := range lines {
@@ -68,6 +68,7 @@ func (api *dineroAPI) CreateInvoice(customerID string, lines []InvoiceLine) (*in
 		PaymentConditions: dinero.PaymentConditions{
 			PaymentConditionType: "Paid",
 		},
+		InvoiceTemplateId: invoiceTemplateId,
 	}
 
 	timestamp, err := invoices.Save(api, invoiceParams)

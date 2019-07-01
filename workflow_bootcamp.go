@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"os"
 
 	"github.com/alecthomas/template"
 	stripe "github.com/stripe/stripe-go"
@@ -90,4 +91,8 @@ func (workflow *BootcampWorkflow) FulfillWorkflow(o stripe.Order) (string, strin
 	}
 
 	return "Du er tilmeldt Badass bootcamp :-)", ""
+}
+
+func (workflow *BootcampWorkflow) GetTemplate() string{
+	return os.Getenv("TEMPLATE_ONE")
 }

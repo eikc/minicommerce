@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-
-	"github.com/rs/cors"
-	"google.golang.org/appengine"
+	"os"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -21,23 +22,32 @@ func main() {
 	router.GET("/downloads/:orderid", download)
 	router.GET("/downloads/:orderid/:sku", downloadV2)
 
-	if appengine.IsDevAppServer() {
-		router.GET("/bootstrap", bootstrap)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
 	}
 
 	handler := cors.Default().Handler(router)
 
-	http.Handle("/", handler)
-	appengine.Main()
+	log.Printf("Listening on port %s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), handler))
 }
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "test")
 }
 
-func bootstrap(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-	initDevelopmentSettings(ctx)
+func getHttpClient() *http.Client {
+	return &http.Client{Timeout: time.Second * 60}
+}
 
-	fmt.Fprint(w, "test")
+func isDevelopmentServer() bool {
+	env := os.Getenv("ENVIRONMENT")
+
+	if env == "production" {
+		return false
+	}
+
+	return true
 }

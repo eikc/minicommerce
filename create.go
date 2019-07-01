@@ -7,9 +7,7 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
-	stripe "github.com/stripe/stripe-go"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
+	"github.com/stripe/stripe-go"
 )
 
 type order struct {
@@ -41,9 +39,9 @@ func (o order) GetOrderType() string {
 
 func create() httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		c := appengine.NewContext(r)
-		httpClient := urlfetch.Client(c)
-		stripeAPI := getStripe(c)
+		ctx := r.Context()
+		httpClient := getHttpClient()
+		stripeAPI := getStripe(ctx)
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -91,12 +89,51 @@ func create() httprouter.Handle {
 		params.AddMetadata("tshirt", o.Tshirt)
 		params.AddMetadata("ordertype", o.GetOrderType())
 
-		_, err = stripeAPI.Orders.New(params)
+		order, err := stripeAPI.Orders.New(params)
 		if err != nil {
 			slackLogging(httpClient, "Could not create order", err.Error(), "Error creating order", "#CF0003")
 			errorHandling(w, err)
 			return
 		}
+
+		token := o.StripeToken
+		op := &stripe.OrderPayParams{}
+		if err := op.SetSource(token); err != nil {
+			slackLogging(httpClient, "Could not prepare order payments", err.Error(), "Error paying order", "#CF0003")
+			errorHandling(w, err)
+			return
+		} // obtained with Stripe.js
+
+		_, err = stripeAPI.Orders.Pay(order.ID, op)
+		if err != nil {
+			if stripeErr, ok := err.(*stripe.Error); ok {
+				var msg string
+
+				switch stripeErr.Code {
+				case stripe.ErrorCodeCardDeclined:
+					msg = "Kortet er blevet afvist. Prøv igen, evt. med et andet kort."
+				case stripe.ErrorCodeExpiredCard:
+					msg = "Kortet er udløbet. Prøv igen med et andet kort."
+				case stripe.ErrorCodeIncorrectCVC:
+				case stripe.ErrorCodeInvalidCVC:
+					msg = "Der er blevet indtastet forkert CVC kode. Prøv igen."
+				case stripe.ErrorCodeInvalidExpiryMonth:
+				case stripe.ErrorCodeInvalidExpiryYear:
+					msg = "Der er blevet indtastet forkert udløbsmåned eller år. Prøv igen."
+				default:
+					msg = stripeErr.Msg
+				}
+
+				slackLogging(httpClient, "Could not capture payment", msg, "Error pay order", "#CF0003")
+				handleStringError(w, msg)
+			} else {
+				slackLogging(httpClient, "Could not capture payment", err.Error(), "Error pay order", "#CF0003")
+				errorHandling(w, err)
+			}
+
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 	}
 }

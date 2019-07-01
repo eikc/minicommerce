@@ -66,7 +66,7 @@ func (workflow *BootcampWorkflow) FulfillWorkflow(o stripe.Order) (string, strin
 			continue
 		}
 
-		sku, _ := workflow.StripeAPI.Skus.Get(item.Parent, nil)
+		sku, _ := workflow.StripeAPI.Skus.Get(item.Parent.ID, nil)
 		date := sku.Attributes["date"]
 		startsAt := sku.Attributes["StartsAt"]
 		fokus := sku.Attributes["fokus"]

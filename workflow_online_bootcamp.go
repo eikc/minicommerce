@@ -46,7 +46,7 @@ func (workflow *OnlineBootcamp) FulfillWorkflow(o stripe.Order) (string, string)
 			continue
 		}
 
-		sku, _ := workflow.StripeAPI.Skus.Get(item.Parent, nil)
+		sku, _ := workflow.StripeAPI.Skus.Get(item.Parent.ID, nil)
 		facebook = sku.Attributes["facebook"]
 	}
 

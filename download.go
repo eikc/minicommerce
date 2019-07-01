@@ -6,13 +6,12 @@ import (
 	"os"
 
 	"github.com/julienschmidt/httprouter"
-	stripe "github.com/stripe/stripe-go"
-	"google.golang.org/appengine"
+	"github.com/stripe/stripe-go"
 )
 
 func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	orderID := params.ByName("orderid")
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 	stripeAPI := getStripe(ctx)
 
 	order, err := stripeAPI.Orders.Get(orderID, nil)
@@ -25,7 +24,7 @@ func download(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 	if order.Status != string(stripe.OrderStatusReturned) {
 		var found bool
 		for _, item := range order.Items {
-			if item.Parent == "sku_DJx1hCHoxDAAtE" {
+			if item.Parent.SKU.ID == "sku_DJx1hCHoxDAAtE" {
 				found = true
 			}
 		}
@@ -55,7 +54,7 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	orderID := params.ByName("orderid")
 	skuID := params.ByName("sku")
 
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 
 	stripeAPI := getStripe(ctx)
 
@@ -76,9 +75,14 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	var found bool
 	description := "program"
 	for _, item := range order.Items {
-		if item.Parent == skuID {
+		if item.Type != stripe.OrderItemTypeSKU {
+			continue
+		}
+
+		if item.Parent.ID == skuID {
 			found = true
 			description = item.Description
+			break
 		}
 	}
 
@@ -93,7 +97,6 @@ func downloadV2(w http.ResponseWriter, r *http.Request, params httprouter.Params
 
 		w.Header().Add("Content-Type", "application/pdf")
 		w.Header().Add("Content-Disposition", fmt.Sprintf("inline; filename=%s.pdf", description))
-		w.WriteHeader(200)
 		http.ServeFile(w, r, f.Name())
 		return
 	}

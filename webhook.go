@@ -6,28 +6,25 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
-	"google.golang.org/appengine/log"
-
 	"github.com/julienschmidt/httprouter"
-	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/webhook"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
 )
 
 func webhookReceiver() httprouter.Handle {
 
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		ctx := appengine.NewContext(r)
+		ctx := r.Context()
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
 
-		s := getSettings(ctxWithTimeout)
-		httpClient := urlfetch.Client(ctxWithTimeout)
+		httpClient := getHttpClient()
 		api := getClient(ctxWithTimeout)
 		stripeAPI := getStripe(ctxWithTimeout)
+		stripeWebhookSignature := os.Getenv("StripeWebhookSignature")
 
 		payoutWorkflow := PayoutWorkflow{
 			DineroAPI: api,
@@ -57,7 +54,7 @@ func webhookReceiver() httprouter.Handle {
 		}
 
 		var e stripe.Event
-		if appengine.IsDevAppServer() {
+		if isDevelopmentServer() {
 			decoder := json.NewDecoder(r.Body)
 			decoder.Decode(&e)
 		} else {
@@ -67,7 +64,7 @@ func webhookReceiver() httprouter.Handle {
 				slackLogging(httpClient, "Problems parsing body of request", err.Error(), "Error with parsing", "#CF0003")
 				return
 			}
-			e, err = webhook.ConstructEvent(body, r.Header.Get("Stripe-Signature"), s.StripeWebhookSignature)
+			e, err = webhook.ConstructEvent(body, r.Header.Get("Stripe-Signature"), stripeWebhookSignature)
 			if err != nil {
 				errorHandling(w, err)
 				slackLogging(httpClient, "Problems constructing stripe event", err.Error(), "Event Error", "#CF0003")
@@ -95,23 +92,6 @@ func webhookReceiver() httprouter.Handle {
 				fmt.Sprintf("money money money... it's so funny, your bank is filled with: %v", p.Amount/100),
 				"Completed",
 				"#23D1E1")
-
-		case "order.created":
-			var o stripe.Order
-			err := json.Unmarshal(e.Data.Raw, &o)
-			if err != nil {
-				errorHandling(w, err)
-				go slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order under created flow", "#CF0003")
-				return
-			}
-
-			token := o.Metadata["token"]
-			op := &stripe.OrderPayParams{}
-			op.SetSource(token) // obtained with Stripe.js
-			_, err = stripeAPI.Orders.Pay(o.ID, op)
-			if err != nil {
-				slackLogging(httpClient, "Stripe charge failed", fmt.Sprint("stripe charge failed: ", err.Error()), "Stripe charge failed", "#CF0003")
-			}
 
 		case "order.payment_succeeded":
 			var o stripe.Order
@@ -148,7 +128,6 @@ func webhookReceiver() httprouter.Handle {
 
 			workflow, err := workflow.StartFlow(o)
 			if err != nil {
-				log.Errorf(ctxWithTimeout, "error is the following: %v", err)
 				errorHandling(w, err)
 				slackLogging(httpClient,
 					fmt.Sprintf("Order %v", o.ID), err.Error(),

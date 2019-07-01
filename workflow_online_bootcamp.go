@@ -57,5 +57,5 @@ func (workflow *OnlineBootcamp) FulfillWorkflow(o stripe.Order) (string, string)
 }
 
 func (workflow *OnlineBootcamp) GetTemplate() string {
-	return os.Getenv("TEMPLATE_TWO")
+	return os.Getenv("BOSS_BABES")
 }

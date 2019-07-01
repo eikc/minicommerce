@@ -94,5 +94,5 @@ func (workflow *BootcampWorkflow) FulfillWorkflow(o stripe.Order) (string, strin
 }
 
 func (workflow *BootcampWorkflow) GetTemplate() string{
-	return os.Getenv("TEMPLATE_ONE")
+	return os.Getenv("BY_BENGTSSON")
 }

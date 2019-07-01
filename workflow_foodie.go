@@ -44,5 +44,5 @@ func (workflow *FoodieWorkflow) FulfillWorkflow(o stripe.Order) (string, string)
 }
 
 func (workflow *FoodieWorkflow) GetTemplate() string {
-	return os.Getenv("TEMPLATE_ONE")
+	return os.Getenv("BY_BENGTSSON")
 }

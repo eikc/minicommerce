@@ -47,5 +47,5 @@ func (workflow *BadassWorkflow) FulfillWorkflow(o stripe.Order) (string, string)
 }
 
 func (workflow *BadassWorkflow) GetTemplate() string{
-	return os.Getenv("TEMPLATE_ONE")
+	return os.Getenv("BY_BENGTSSON")
 }

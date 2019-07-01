@@ -45,5 +45,9 @@ func errorHandling(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	fmt.Sprintln("error occured: ", err)
 	fmt.Fprint(w, err)
-	return
+}
+
+func handleStringError(w http.ResponseWriter, err string) {
+	w.WriteHeader(http.StatusInternalServerError)
+	fmt.Fprint(w, err)
 }

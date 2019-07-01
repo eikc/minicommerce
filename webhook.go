@@ -93,23 +93,6 @@ func webhookReceiver() httprouter.Handle {
 				"Completed",
 				"#23D1E1")
 
-		case "order.created":
-			var o stripe.Order
-			err := json.Unmarshal(e.Data.Raw, &o)
-			if err != nil {
-				errorHandling(w, err)
-				go slackLogging(httpClient, fmt.Sprintf("Order %v", o.ID), err.Error(), "Error with order under created flow", "#CF0003")
-				return
-			}
-
-			token := o.Metadata["token"]
-			op := &stripe.OrderPayParams{}
-			op.SetSource(token) // obtained with Stripe.js
-			_, err = stripeAPI.Orders.Pay(o.ID, op)
-			if err != nil {
-				slackLogging(httpClient, "Stripe charge failed", fmt.Sprint("stripe charge failed: ", err.Error()), "Stripe charge failed", "#CF0003")
-			}
-
 		case "order.payment_succeeded":
 			var o stripe.Order
 			err := json.Unmarshal(e.Data.Raw, &o)

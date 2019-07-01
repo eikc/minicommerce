@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/stripe/stripe-go"
 	stripeClient "github.com/stripe/stripe-go/client"
@@ -53,4 +54,8 @@ func (workflow *OnlineBootcamp) FulfillWorkflow(o stripe.Order) (string, string)
 	text := fmt.Sprintf(onlineBootcampText, name, facebook, amount)
 
 	return "Her er dit program :-)", text
+}
+
+func (workflow *OnlineBootcamp) GetTemplate() string {
+	return os.Getenv("BOSS_BABES")
 }

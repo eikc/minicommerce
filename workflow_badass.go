@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/stripe/stripe-go"
 )
@@ -43,4 +44,8 @@ func (workflow *BadassWorkflow) FulfillWorkflow(o stripe.Order) (string, string)
 	text := fmt.Sprintf(badassText, name, downloadLink, amount)
 
 	return "Her er dit program :-)", text
+}
+
+func (workflow *BadassWorkflow) GetTemplate() string{
+	return os.Getenv("BY_BENGTSSON")
 }

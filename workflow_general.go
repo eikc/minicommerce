@@ -12,6 +12,7 @@ import (
 // Fulfillment is how the order is fulfilled
 type Fulfillment interface {
 	FulfillWorkflow(o stripe.Order) (string, string)
+	GetTemplate() string
 }
 
 // Workflow is how stripe is used to create a workflow surrounding orders of different types
@@ -76,6 +77,9 @@ func (workflow *Workflow) CreateCustomer(o stripe.Order) error {
 // CreateInvoice creates an invoice in the given workflow
 func (workflow *Workflow) CreateInvoice(o stripe.Order) error {
 	customerID := o.Metadata["customer"]
+	orderType := o.Metadata["ordertype"]
+	handler := workflow.Fulfillments[orderType]
+
 	var lines []InvoiceLine
 
 	for _, l := range o.Items {
@@ -98,7 +102,7 @@ func (workflow *Workflow) CreateInvoice(o stripe.Order) error {
 		}
 	}
 
-	invoice, err := workflow.DineroAPI.CreateInvoice(customerID, lines)
+	invoice, err := workflow.DineroAPI.CreateInvoice(customerID, lines, handler.GetTemplate())
 	if err != nil {
 		return fmt.Errorf("Dinero API - Creating invoice: %s - Lines are: %v", err.Error(), lines)
 	}

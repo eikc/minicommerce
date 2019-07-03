@@ -24,7 +24,7 @@ func webhookReceiver() httprouter.Handle {
 		httpClient := getHttpClient()
 		api := getClient(ctxWithTimeout)
 		stripeAPI := getStripe(ctxWithTimeout)
-		stripeWebhookSignature := os.Getenv("StripeWebhookSignature")
+		stripeWebhookSignature := os.Getenv("STRIPEWEBHOOKSIGNATURE")
 
 		payoutWorkflow := PayoutWorkflow{
 			DineroAPI: api,

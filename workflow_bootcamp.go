@@ -93,6 +93,6 @@ func (workflow *BootcampWorkflow) FulfillWorkflow(o stripe.Order) (string, strin
 	return "Du er tilmeldt Badass bootcamp :-)", ""
 }
 
-func (workflow *BootcampWorkflow) GetTemplate() string{
+func (workflow *BootcampWorkflow) GetTemplate() string {
 	return os.Getenv("BY_BENGTSSON")
 }

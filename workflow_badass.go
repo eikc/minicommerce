@@ -46,6 +46,6 @@ func (workflow *BadassWorkflow) FulfillWorkflow(o stripe.Order) (string, string)
 	return "Her er dit program :-)", text
 }
 
-func (workflow *BadassWorkflow) GetTemplate() string{
+func (workflow *BadassWorkflow) GetTemplate() string {
 	return os.Getenv("BY_BENGTSSON")
 }

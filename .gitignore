@@ -27,3 +27,12 @@ _testmain.go
 
 app.local.yaml
 app.production.yaml
+\.idea/miniCommerce\.iml
+
+\.idea/misc\.xml
+
+\.idea/modules\.xml
+
+\.idea/vcs\.xml
+
+\.idea/workspace\.xml

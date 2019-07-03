@@ -41,13 +41,3 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func getHttpClient() *http.Client {
 	return &http.Client{Timeout: time.Second * 60}
 }
-
-func isDevelopmentServer() bool {
-	env := os.Getenv("ENVIRONMENT")
-
-	if env == "production" {
-		return false
-	}
-
-	return true
-}

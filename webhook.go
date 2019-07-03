@@ -54,22 +54,17 @@ func webhookReceiver() httprouter.Handle {
 		}
 
 		var e stripe.Event
-		if isDevelopmentServer() {
-			decoder := json.NewDecoder(r.Body)
-			decoder.Decode(&e)
-		} else {
-			body, err := ioutil.ReadAll(r.Body)
-			if err != nil {
-				errorHandling(w, err)
-				slackLogging(httpClient, "Problems parsing body of request", err.Error(), "Error with parsing", "#CF0003")
-				return
-			}
-			e, err = webhook.ConstructEvent(body, r.Header.Get("Stripe-Signature"), stripeWebhookSignature)
-			if err != nil {
-				errorHandling(w, err)
-				slackLogging(httpClient, "Problems constructing stripe event", err.Error(), "Event Error", "#CF0003")
-				return
-			}
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			errorHandling(w, err)
+			slackLogging(httpClient, "Problems parsing body of request", err.Error(), "Error with parsing", "#CF0003")
+			return
+		}
+		e, err = webhook.ConstructEvent(body, r.Header.Get("Stripe-Signature"), stripeWebhookSignature)
+		if err != nil {
+			errorHandling(w, err)
+			slackLogging(httpClient, "Problems constructing stripe event", err.Error(), "Event Error", "#CF0003")
+			return
 		}
 
 		switch e.Type {

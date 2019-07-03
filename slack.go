@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/stripe/stripe-go"
 )
@@ -53,14 +54,8 @@ func (attachment *Attachment) addField(field Field) *Attachment {
 }
 
 func slackLogging(httpClient *http.Client, title, text, status, color string) {
-	channel := "#logging"
-	url := "https://hooks.slack.com/services/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"
-
-	if isDevelopmentServer() {
-		channel = "Eikster"
-		url = "https://hooks.slack.com/services/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"
-	}
-
+	channel := os.Getenv("SLACK_CHANNEL")
+	url := os.Getenv("SLACK_URL")
 	attachment1 := Attachment{}
 	attachment1.Title = stripe.String(text)
 	attachment1.Text = stripe.String(fmt.Sprintf("%s - %s", title, status))

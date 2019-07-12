@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"io"
 
 	"gocloud.dev/blob"
 
@@ -20,23 +21,23 @@ func NewStorage(bucketURL string) *Storage {
 }
 
 // Read gets an object from the cloud storage
-func (s *Storage) Read(ctx context.Context, location string) ([]byte, error) {
+func (s *Storage) Read(ctx context.Context, location string) (io.ReadCloser, error) {
 	b, err := blob.OpenBucket(ctx, s.BucketURL)
 	if err != nil {
 		return nil, err
 	}
 	defer b.Close()
 
-	f, err := b.ReadAll(ctx, location)
+	r, err := b.NewReader(ctx, location, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return f, nil
+	return r, nil
 }
 
 // Write adds an new object to the cloud storage
-func (s *Storage) Write(ctx context.Context, location string, file []byte) error {
+func (s *Storage) Write(ctx context.Context, location string, r io.Reader) error {
 	b, err := blob.OpenBucket(ctx, s.BucketURL)
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func (s *Storage) Write(ctx context.Context, location string, file []byte) error
 		return err
 	}
 
-	_, err = w.Write(file)
+	_, err = io.Copy(w, r)
 	if err != nil {
 		return err
 	}

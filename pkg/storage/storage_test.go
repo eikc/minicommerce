@@ -1,7 +1,9 @@
 package storage
 
 import (
+	"bytes"
 	"context"
+	"strings"
 	"testing"
 )
 
@@ -13,20 +15,25 @@ func TestStorage(t *testing.T) {
 	ctx := context.Background()
 	storage := NewStorage("gs://minicommerce_testing")
 
-	if err := storage.Write(ctx, "testing.txt", []byte("hello world")); err != nil {
+	if err := storage.Write(ctx, "testing.txt", strings.NewReader("hello world")); err != nil {
 		t.Errorf(err.Error())
 	}
+	defer storage.Delete(ctx, "testing.txt")
 
-	b, err := storage.Read(ctx, "testing.txt")
+	r, err := storage.Read(ctx, "testing.txt")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	defer r.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(r)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	if string(b) != "hello world" {
-		t.Error("Could not read the correct document")
-	}
-
-	if err = storage.Delete(ctx, "testing.txt"); err != nil {
-		t.Errorf(err.Error())
+	s := buf.String()
+	if s != "hello world" {
+		t.Errorf("the reader did not contain the correct text string")
 	}
 }

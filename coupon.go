@@ -2,7 +2,7 @@ package minicommerce
 
 // Coupon is the domain and data model representing a Coupon in miniCommerce
 type Coupon struct {
-	ID             string  `firestore:"id,omitempty"`
+	ID             string  `firestore:"-"`
 	Name           string  `firestore:"name,omitempty"`
 	AmountOff      int64   `firestore:"amountOff,omitempty"`
 	PercentOff     float64 `firestore:"percentOff,omitempty"`

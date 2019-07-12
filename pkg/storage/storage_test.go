@@ -3,8 +3,6 @@ package storage
 import (
 	"context"
 	"testing"
-
-	"gocloud.dev/gcp"
 )
 
 func TestStorage(t *testing.T) {
@@ -13,19 +11,9 @@ func TestStorage(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	creds, err := gcp.DefaultCredentials(ctx)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	storage := NewStorage("gs://minicommerce_testing")
 
-	client, err := gcp.NewHTTPClient(gcp.DefaultTransport(), gcp.CredentialsTokenSource(creds))
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	storage := NewStorage(client, "minicommerce_testing")
-
-	if err = storage.Write(ctx, "testing.txt", []byte("hello world")); err != nil {
+	if err := storage.Write(ctx, "testing.txt", []byte("hello world")); err != nil {
 		t.Errorf(err.Error())
 	}
 

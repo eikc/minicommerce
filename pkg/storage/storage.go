@@ -3,24 +3,25 @@ package storage
 import (
 	"context"
 
-	"gocloud.dev/blob/gcsblob"
-	"gocloud.dev/gcp"
+	"gocloud.dev/blob"
+
+	// Enables the google cloud storage SDK
+	_ "gocloud.dev/blob/gcsblob"
 )
 
 // Storage is the interface to the blob storage
 type Storage struct {
-	Client *gcp.HTTPClient
-	Bucket string
+	BucketURL string
 }
 
 // NewStorage creates the storage struct with all the needed dependencies
-func NewStorage(client *gcp.HTTPClient, bucket string) *Storage {
-	return &Storage{client, bucket}
+func NewStorage(bucketURL string) *Storage {
+	return &Storage{bucketURL}
 }
 
 // Read gets an object from the cloud storage
 func (s *Storage) Read(ctx context.Context, location string) ([]byte, error) {
-	b, err := gcsblob.OpenBucket(ctx, s.Client, s.Bucket, nil)
+	b, err := blob.OpenBucket(ctx, s.BucketURL)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func (s *Storage) Read(ctx context.Context, location string) ([]byte, error) {
 
 // Write adds an new object to the cloud storage
 func (s *Storage) Write(ctx context.Context, location string, file []byte) error {
-	b, err := gcsblob.OpenBucket(ctx, s.Client, s.Bucket, nil)
+	b, err := blob.OpenBucket(ctx, s.BucketURL)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func (s *Storage) Write(ctx context.Context, location string, file []byte) error
 
 // Delete deletes an object from the cloud storage
 func (s *Storage) Delete(ctx context.Context, location string) error {
-	b, err := gcsblob.OpenBucket(ctx, s.Client, s.Bucket, nil)
+	b, err := blob.OpenBucket(ctx, s.BucketURL)
 	if err != nil {
 		return err
 	}

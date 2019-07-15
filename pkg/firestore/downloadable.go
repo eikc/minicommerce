@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/eikc/minicommerce"
@@ -45,6 +46,11 @@ func (d *DownloadableService) Get(ctx context.Context, id string) (*minicommerce
 		return nil, err
 	}
 
+	var notDeleted int64
+	if downloadable.Deleted != notDeleted {
+		return nil, &DocumentNotFoundError{fmt.Sprintf("%s/%s", downloadableCollection, id)}
+	}
+
 	return &downloadable, nil
 }
 
@@ -68,7 +74,9 @@ func (d *DownloadableService) Create(ctx context.Context, downloadable *minicomm
 // Delete will...
 func (d *DownloadableService) Delete(ctx context.Context, id string) error {
 	docRef := d.client.Collection(downloadableCollection).Doc(id)
-	_, err := docRef.Delete(ctx)
+
+	now := time.Now().UTC().Unix()
+	_, err := docRef.Update(ctx, []firestore.Update{{Path: "deleted", Value: now}})
 	if err != nil {
 		return err
 	}

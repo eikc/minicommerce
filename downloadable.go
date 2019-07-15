@@ -5,4 +5,5 @@ type Downloadable struct {
 	ID       string `firestore:"-"`
 	Name     string `firestore:"name,omitempty"`
 	Location string `firestore:"location,omitempty"`
+	Deleted  int64  `firestore:"deleted,omitempty"`
 }

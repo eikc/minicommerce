@@ -71,3 +71,38 @@ func TestDownloadableServiceCreate(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 }
+
+func TestDownloadableServiceDelete(t *testing.T) {
+	ctx := context.Background()
+
+	client, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	doc := client.Collection(downloadableCollection).NewDoc()
+	data := minicommerce.Downloadable{
+		ID:       doc.ID,
+		Name:     "testing delete",
+		Location: "somepdf.pdf",
+	}
+
+	_, err = doc.Set(ctx, data)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	downloadableService := NewDownloadableService(client)
+
+	if err = downloadableService.Delete(ctx, doc.ID); err != nil {
+		t.Errorf(err.Error())
+	}
+
+	var dt int64
+	docData, _ := doc.Get(ctx)
+	docData.DataTo(&data)
+
+	if data.Deleted == dt {
+		t.Errorf("Deleted timestamp was not updated from default value")
+	}
+}

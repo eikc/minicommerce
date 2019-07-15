@@ -7,6 +7,8 @@ import (
 	"github.com/eikc/minicommerce"
 )
 
+const ordersCollection string = "orders"
+
 // OrdersRepository ...
 type OrdersRepository struct {
 	client *firestore.Client
@@ -18,12 +20,33 @@ func NewOrdersRepository(c *firestore.Client) *OrdersRepository {
 }
 
 // GetAll ...
-func (o *OrdersRepository) GetAll(ctx context.Context) ([]minicommerce.Product, error) {
-	return nil, nil
+func (o *OrdersRepository) GetAll(ctx context.Context) ([]minicommerce.Order, error) {
+	colRef := o.client.Collection(ordersCollection)
+	iter := colRef.Documents(ctx)
+	docs, err := iter.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var orders []minicommerce.Order
+
+	for _, d := range docs {
+		order := minicommerce.Order{
+			ID: d.Ref.ID,
+		}
+
+		if err := d.DataTo(&order); err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
 }
 
 // Get ...
-func (o *OrdersRepository) Get(ctx context.Context, id string) (*minicommerce.Product, error) {
+func (o *OrdersRepository) Get(ctx context.Context, id string) (*minicommerce.Order, error) {
 	return nil, nil
 }
 

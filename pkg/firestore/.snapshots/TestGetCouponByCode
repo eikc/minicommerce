@@ -1,0 +1,10 @@
+(*minicommerce.Coupon)({
+  ID: (string) (len=11) "get-by-code",
+  Description: (string) (len=30) "Trying to get a coupon by code",
+  Active: (bool) true,
+  AmountOff: (int64) 500,
+  PercentOff: (float64) 0.1,
+  MaxRedemptions: (int64) 10,
+  RedeemBy: (int64) 2,
+  RedeemBefore: (int64) 1563198147
+})

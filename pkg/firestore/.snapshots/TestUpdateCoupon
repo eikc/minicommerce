@@ -1,0 +1,9 @@
+(map[string]interface {}) (len=7) {
+  (string) (len=6) "active": (bool) false,
+  (string) (len=9) "amountOff": (int64) 500,
+  (string) (len=11) "description": (string) (len=30) "Trying to get a coupon by code",
+  (string) (len=14) "maxRedemptions": (int64) 10,
+  (string) (len=10) "percentOff": (float64) 0.1,
+  (string) (len=12) "redeemBefore": (int64) 1563198147,
+  (string) (len=8) "redeemBy": (int64) 3
+}

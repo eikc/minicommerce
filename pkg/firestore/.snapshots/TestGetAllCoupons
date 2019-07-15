@@ -1,0 +1,22 @@
+([]minicommerce.Coupon) (len=2) {
+  (minicommerce.Coupon) {
+    ID: (string) (len=16) "coupon-get-all-1",
+    Description: (string) (len=11) "test coupon",
+    Active: (bool) true,
+    AmountOff: (int64) 10000,
+    PercentOff: (float64) 0.1,
+    MaxRedemptions: (int64) 5,
+    RedeemBy: (int64) 0,
+    RedeemBefore: (int64) 0
+  },
+  (minicommerce.Coupon) {
+    ID: (string) (len=16) "coupon-get-all-2",
+    Description: (string) (len=11) "test coupon",
+    Active: (bool) false,
+    AmountOff: (int64) 5000,
+    PercentOff: (float64) 0.1,
+    MaxRedemptions: (int64) 5,
+    RedeemBy: (int64) 0,
+    RedeemBefore: (int64) 0
+  }
+}

@@ -1,0 +1,19 @@
+(*minicommerce.Product)({
+  ID: (string) (len=19) "testing-get-product",
+  Created: (int64) 1,
+  Updated: (int64) 1,
+  Type: (minicommerce.ProductType) (len=7) "digital",
+  Name: (string) (len=19) "One digital product",
+  Description: (string) (len=24) "And it has a description",
+  Price: (int64) 10000,
+  Metadata: (map[string]string) <nil>,
+  Active: (bool) true,
+  URL: (string) "",
+  Downloadable: ([]minicommerce.Downloadable) (len=1) {
+    (minicommerce.Downloadable) {
+      ID: (string) "",
+      Name: (string) (len=19) "One digital product",
+      Location: (string) (len=10) "foodie.pdf"
+    }
+  }
+})

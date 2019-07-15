@@ -1,0 +1,40 @@
+(*minicommerce.Order)({
+  ID: (string) (len=21) "testing-getting-order",
+  PaymentID: (string) (len=14) "payment-intent",
+  Coupon: (string) (len=14) "testing-coupon",
+  Items: ([]minicommerce.Product) (len=1) {
+    (minicommerce.Product) {
+      ID: (string) "",
+      Created: (int64) 1,
+      Updated: (int64) 2,
+      Type: (minicommerce.ProductType) (len=7) "digital",
+      Name: (string) (len=16) "det lille skridt",
+      Description: (string) (len=24) "en bog om madsens skridt",
+      Price: (int64) 15000,
+      Metadata: (map[string]string) <nil>,
+      Active: (bool) true,
+      URL: (string) "",
+      Downloadable: ([]minicommerce.Downloadable) (len=1) {
+        (minicommerce.Downloadable) {
+          ID: (string) "",
+          Name: (string) (len=20) "det-lille-skridt.pdf",
+          Location: (string) (len=20) "det-lille-skridt.pdf"
+        }
+      }
+    }
+  },
+  Customer: (minicommerce.Customer) {
+    Name: (string) (len=12) "testing name",
+    Email: (string) (len=13) "testing email",
+    Address: (string) (len=15) "testing address",
+    ZipCode: (string) (len=15) "zipcode testing",
+    Phone: (string) (len=11) "phone field"
+  },
+  Refunded: (bool) false,
+  Amount: (int64) 15000,
+  Discount: (int64) 0,
+  Shipping: (int64) 0,
+  NetAmount: (int64) 15000,
+  Taxes: (int64) 5000,
+  Total: (int64) 20000
+})

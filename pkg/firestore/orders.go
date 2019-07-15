@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"context"
+	"fmt"
 
 	"cloud.google.com/go/firestore"
 	"github.com/eikc/minicommerce"
@@ -47,7 +48,25 @@ func (o *OrdersRepository) GetAll(ctx context.Context) ([]minicommerce.Order, er
 
 // Get ...
 func (o *OrdersRepository) Get(ctx context.Context, id string) (*minicommerce.Order, error) {
-	return nil, nil
+	docRef := o.client.Collection(ordersCollection).Doc(id)
+	snapshot, err := docRef.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !snapshot.Exists() {
+		return nil, &DocumentNotFoundError{fmt.Sprintf("%s/%s", ordersCollection, id)}
+	}
+
+	order := minicommerce.Order{
+		ID: id,
+	}
+
+	if err := snapshot.DataTo(&order); err != nil {
+		return nil, err
+	}
+
+	return &order, nil
 }
 
 // Create ...

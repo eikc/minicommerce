@@ -3,7 +3,6 @@ package firestore
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/eikc/minicommerce"
@@ -46,20 +45,30 @@ func (d *DownloadableService) Get(ctx context.Context, id string) (*minicommerce
 		return nil, err
 	}
 
-	var notDeleted int64
-	if downloadable.Deleted != notDeleted {
-		return nil, &DocumentNotFoundError{fmt.Sprintf("%s/%s", downloadableCollection, id)}
-	}
-
 	return &downloadable, nil
 }
 
-// GetAll will...
-func (d *DownloadableService) GetAll() ([]minicommerce.Downloadable, error) {
-	return nil, nil
+// GetAll will get all non deleted downloadables from firestore
+func (d *DownloadableService) GetAll(ctx context.Context) ([]minicommerce.Downloadable, error) {
+	colRef := d.client.Collection(downloadableCollection)
+	iter := colRef.Documents(ctx)
+	docs, err := iter.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var collection []minicommerce.Downloadable
+	for _, doc := range docs {
+		var data minicommerce.Downloadable
+		doc.DataTo(&data)
+		data.ID = doc.Ref.ID
+		collection = append(collection, data)
+	}
+
+	return collection, nil
 }
 
-// Create will..
+// Create will create a documents in firestore with the given data, if the document ID exist it will fail
 func (d *DownloadableService) Create(ctx context.Context, downloadable *minicommerce.Downloadable) error {
 	docRef := d.client.Collection(downloadableCollection).Doc(downloadable.ID)
 	_, err := docRef.Create(ctx, downloadable)
@@ -71,12 +80,10 @@ func (d *DownloadableService) Create(ctx context.Context, downloadable *minicomm
 	return nil
 }
 
-// Delete will...
+// Delete will remove a document from the firestore collection
 func (d *DownloadableService) Delete(ctx context.Context, id string) error {
 	docRef := d.client.Collection(downloadableCollection).Doc(id)
-
-	now := time.Now().UTC().Unix()
-	_, err := docRef.Update(ctx, []firestore.Update{{Path: "deleted", Value: now}})
+	_, err := docRef.Collection(downloadableCollection).Doc(id).Delete(ctx)
 	if err != nil {
 		return err
 	}

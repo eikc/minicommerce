@@ -1,0 +1,5 @@
+(*minicommerce.Downloadable)({
+  ID: (string) (len=13) "testing-get-1",
+  Name: (string) (len=24) "testing downloadable get",
+  Location: (string) (len=11) "testing.pdf"
+})

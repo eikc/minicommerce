@@ -2,8 +2,9 @@ package firestore
 
 import (
 	"context"
-	"reflect"
 	"testing"
+
+	"github.com/bradleyjkemp/cupaloy"
 
 	"github.com/eikc/minicommerce"
 
@@ -19,7 +20,7 @@ func TestDownloadableServiceGet(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	ID := client.Collection(downloadableCollection).NewDoc().ID
+	ID := "testing-get-1"
 
 	defer func() {
 		client.Collection(downloadableCollection).Doc(ID).Delete(ctx)
@@ -39,9 +40,8 @@ func TestDownloadableServiceGet(t *testing.T) {
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	if !reflect.DeepEqual(*document, *downloadable) {
-		t.Errorf("Downloadable documents does not match")
-	}
+
+	cupaloy.SnapshotT(t, downloadable)
 }
 
 func TestDownloadableServiceCreate(t *testing.T) {
@@ -81,6 +81,11 @@ func TestDownloadableServiceDelete(t *testing.T) {
 	}
 
 	doc := client.Collection(downloadableCollection).NewDoc()
+	defer func() {
+		client.Collection(downloadableCollection).Doc(doc.ID).Delete(ctx)
+		client.Close()
+	}()
+
 	data := minicommerce.Downloadable{
 		ID:       doc.ID,
 		Name:     "testing delete",
@@ -97,12 +102,38 @@ func TestDownloadableServiceDelete(t *testing.T) {
 	if err = downloadableService.Delete(ctx, doc.ID); err != nil {
 		t.Errorf(err.Error())
 	}
+}
 
-	var dt int64
-	docData, _ := doc.Get(ctx)
-	docData.DataTo(&data)
-
-	if data.Deleted == dt {
-		t.Errorf("Deleted timestamp was not updated from default value")
+func Test(t *testing.T) {
+	ctx := context.Background()
+	client, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		t.Errorf(err.Error())
 	}
+	dd := []minicommerce.Downloadable{
+		{ID: "test-1", Name: "test 1", Location: "one.pdf"},
+		{ID: "test-2", Name: "test 2", Location: "two.pdf"},
+		{ID: "test-3", Name: "test 3", Location: "three.pdf"},
+	}
+
+	defer func() {
+		for _, d := range dd {
+			client.Collection(downloadableCollection).Doc(d.ID).Delete(ctx)
+		}
+		client.Close()
+	}()
+
+	for _, d := range dd {
+		docRef := client.Collection(downloadableCollection).Doc(d.ID)
+		docRef.Set(ctx, d)
+	}
+
+	service := NewDownloadableService(client)
+
+	downloadables, err := service.GetAll(ctx)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	cupaloy.SnapshotT(t, downloadables)
 }

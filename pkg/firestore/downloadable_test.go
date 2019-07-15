@@ -104,7 +104,7 @@ func TestDownloadableServiceDelete(t *testing.T) {
 	}
 }
 
-func Test(t *testing.T) {
+func TestGetAllDownloadable(t *testing.T) {
 	ctx := context.Background()
 	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {

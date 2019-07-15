@@ -2,7 +2,7 @@ package minicommerce
 
 // Order represents the domain model for an order or cart in minicommerce
 type Order struct {
-	ID        string    `firestore:"id,omitempty"`
+	ID        string    `firestore:"-"`
 	PaymentID string    `firestore:"paymentId,omitempty"`
 	Coupon    string    `firestore:"coupon,omitempty"`
 	Items     []Product `firestore:"items,omitempty"`

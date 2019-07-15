@@ -1,0 +1,17 @@
+([]minicommerce.Downloadable) (len=3) {
+  (minicommerce.Downloadable) {
+    ID: (string) (len=6) "test-1",
+    Name: (string) (len=6) "test 1",
+    Location: (string) (len=7) "one.pdf"
+  },
+  (minicommerce.Downloadable) {
+    ID: (string) (len=6) "test-2",
+    Name: (string) (len=6) "test 2",
+    Location: (string) (len=7) "two.pdf"
+  },
+  (minicommerce.Downloadable) {
+    ID: (string) (len=6) "test-3",
+    Name: (string) (len=6) "test 3",
+    Location: (string) (len=9) "three.pdf"
+  }
+}

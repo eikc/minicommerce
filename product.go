@@ -12,7 +12,7 @@ const (
 
 // Product represents the domain and data model for miniCommerce
 type Product struct {
-	ID           string            `firestore:"id,omitempty"`
+	ID           string            `firestore:"-"`
 	Created      int64             `firestore:"created,omitempty"`
 	Updated      int64             `firestore:"updated,omitempty"`
 	Type         ProductType       `firestore:"type,omitempty"`

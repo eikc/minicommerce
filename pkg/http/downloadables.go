@@ -20,7 +20,7 @@ func (s *Server) getAllDownloadables() httprouter.Handle {
 		ctx := r.Context()
 		downloadables, err := s.downloadableRepository.GetAll(ctx)
 		if err != nil {
-			http.NotFound(w, r)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
 		var resp response

@@ -67,6 +67,11 @@ func TestGetDownloadables(t *testing.T) {
 			},
 		},
 		{
+			desc: "When no downloadables are available, it will be an empty collection response",
+			err:  nil,
+			data: []minicommerce.Downloadable{},
+		},
+		{
 			desc: "testing error response",
 			err:  fmt.Errorf("When an error occurs, internal server error is thrown"),
 			data: nil,

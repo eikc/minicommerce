@@ -13,7 +13,7 @@ func (s *Server) getAllDownloadables() httprouter.Handle {
 	}
 
 	type response struct {
-		Collection []downloadableItem `json:"collection,omitempty"`
+		Collection []downloadableItem `json:"collection"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -21,9 +21,12 @@ func (s *Server) getAllDownloadables() httprouter.Handle {
 		downloadables, err := s.downloadableRepository.GetAll(ctx)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		var resp response
+		resp := response{
+			Collection: make([]downloadableItem, 0),
+		}
 		for _, downloadable := range downloadables {
 			d := downloadableItem{
 				ID:   downloadable.ID,

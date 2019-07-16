@@ -3,24 +3,24 @@ package minicommerce
 // Order represents the domain model for an order or cart in minicommerce
 type Order struct {
 	ID        string    `firestore:"-"`
-	PaymentID string    `firestore:"paymentId,omitempty"`
-	Coupon    string    `firestore:"coupon,omitempty"`
-	Items     []Product `firestore:"items,omitempty"`
-	Customer  Customer  `firestore:"customer,omitempty"`
-	Refunded  bool      `firestore:"refunded,omitempty"`
-	Amount    int64     `firestore:"amount,omitempty"`
-	Discount  int64     `firestore:"discount,omitempty"`
-	Shipping  int64     `firestore:"shipping,omitempty"`
-	NetAmount int64     `firestore:"netAmount,omitempty"`
-	Taxes     int64     `firestore:"taxes,omitempty"`
-	Total     int64     `firestore:"total,omitempty"`
+	PaymentID string    `firestore:"paymentId"`
+	Coupon    string    `firestore:"coupon"`
+	Items     []Product `firestore:"items"`
+	Customer  Customer  `firestore:"customer"`
+	Refunded  bool      `firestore:"refunded"`
+	Amount    int64     `firestore:"amount"`
+	Discount  int64     `firestore:"discount"`
+	Shipping  int64     `firestore:"shipping"`
+	NetAmount int64     `firestore:"netAmount"`
+	Taxes     int64     `firestore:"taxes"`
+	Total     int64     `firestore:"total"`
 }
 
 // Customer is...
 type Customer struct {
-	Name    string `firestore:"name,omitempty"`
-	Email   string `firestore:"email,omitempty"`
-	Address string `firestore:"address,omitempty"`
-	ZipCode string `firestore:"zipCode,omitempty"`
-	Phone   string `firestore:"phone,omitempty"`
+	Name    string `firestore:"name"`
+	Email   string `firestore:"email"`
+	Address string `firestore:"address"`
+	ZipCode string `firestore:"zipCode"`
+	Phone   string `firestore:"phone"`
 }

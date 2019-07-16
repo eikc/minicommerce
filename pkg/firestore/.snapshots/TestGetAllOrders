@@ -1,0 +1,62 @@
+([]minicommerce.Order) (len=3) {
+  (minicommerce.Order) {
+    ID: (string) (len=16) "get-all-orders-1",
+    PaymentID: (string) "",
+    Coupon: (string) "",
+    Items: ([]minicommerce.Product) <nil>,
+    Customer: (minicommerce.Customer) {
+      Name: (string) "",
+      Email: (string) "",
+      Address: (string) "",
+      ZipCode: (string) "",
+      Phone: (string) ""
+    },
+    Refunded: (bool) false,
+    Amount: (int64) 100,
+    Discount: (int64) 0,
+    Shipping: (int64) 25,
+    NetAmount: (int64) 125,
+    Taxes: (int64) 25,
+    Total: (int64) 150
+  },
+  (minicommerce.Order) {
+    ID: (string) (len=16) "get-all-orders-2",
+    PaymentID: (string) "",
+    Coupon: (string) "",
+    Items: ([]minicommerce.Product) <nil>,
+    Customer: (minicommerce.Customer) {
+      Name: (string) "",
+      Email: (string) "",
+      Address: (string) "",
+      ZipCode: (string) "",
+      Phone: (string) ""
+    },
+    Refunded: (bool) false,
+    Amount: (int64) 0,
+    Discount: (int64) 0,
+    Shipping: (int64) 0,
+    NetAmount: (int64) 0,
+    Taxes: (int64) 0,
+    Total: (int64) 0
+  },
+  (minicommerce.Order) {
+    ID: (string) (len=16) "get-all-orders-3",
+    PaymentID: (string) "",
+    Coupon: (string) "",
+    Items: ([]minicommerce.Product) <nil>,
+    Customer: (minicommerce.Customer) {
+      Name: (string) "",
+      Email: (string) "",
+      Address: (string) "",
+      ZipCode: (string) "",
+      Phone: (string) ""
+    },
+    Refunded: (bool) false,
+    Amount: (int64) 0,
+    Discount: (int64) 0,
+    Shipping: (int64) 0,
+    NetAmount: (int64) 0,
+    Taxes: (int64) 0,
+    Total: (int64) 0
+  }
+}

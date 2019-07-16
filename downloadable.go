@@ -2,7 +2,6 @@ package minicommerce
 
 import (
 	"context"
-	"io"
 )
 
 // Downloadable is the location of a downloadable digital product uploaded somewhere to google cloud storage
@@ -14,18 +13,18 @@ type Downloadable struct {
 
 // DownloadableReader ...
 type DownloadableReader interface {
-	Get(ctx context.Context, location string) (io.ReadCloser, error)
+	Get(ctx context.Context, id string) (*Downloadable, error)
 	GetAll(ctx context.Context) ([]Downloadable, error)
 }
 
 // DownloadableWriter ..
 type DownloadableWriter interface {
-	Create(ctx context.Context, location string, r io.Reader) error
+	Create(ctx context.Context, downloadable *Downloadable) error
 }
 
 // DownloadableDeleter ...
 type DownloadableDeleter interface {
-	Delete(ctx context.Context, location string) error
+	Delete(ctx context.Context, id string) error
 }
 
 // DownloadableRepository ...

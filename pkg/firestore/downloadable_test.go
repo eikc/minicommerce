@@ -11,8 +11,6 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-const projectID = "minicommerce-testing"
-
 func TestDownloadableServiceGet(t *testing.T) {
 	ctx := context.Background()
 	client, err := firestore.NewClient(ctx, projectID)

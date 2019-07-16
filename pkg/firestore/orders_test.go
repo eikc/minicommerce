@@ -118,3 +118,78 @@ func TestGetOrder(t *testing.T) {
 
 	cupaloy.SnapshotT(t, order)
 }
+
+func TestCreateOrder(t *testing.T) {
+	ctx := context.Background()
+	ID := "testing-order-create"
+
+	c, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	defer func() {
+		c.Collection(ordersCollection).Doc(ID).Delete(ctx)
+		c.Close()
+	}()
+
+	repo := NewOrdersRepository(c)
+	order := minicommerce.Order{
+		ID:     ID,
+		Amount: 15000,
+	}
+
+	if err := repo.Create(ctx, &order); err != nil {
+		t.Error(err.Error())
+	}
+
+	snapshot, err := c.Collection(ordersCollection).Doc(ID).Get(ctx)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	cupaloy.SnapshotT(t, snapshot.Data())
+}
+
+func TestUpdateOrder(t *testing.T) {
+	ctx := context.Background()
+	ID := "testing-order-update"
+
+	c, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	defer func() {
+		c.Collection(ordersCollection).Doc(ID).Delete(ctx)
+		c.Close()
+	}()
+
+	orderToUpdate := minicommerce.Order{
+		ID:     ID,
+		Amount: 15000,
+	}
+
+	_, err = c.Collection(ordersCollection).Doc(ID).Create(ctx, orderToUpdate)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	repo := NewOrdersRepository(c)
+	orderToUpdate.Customer = minicommerce.Customer{
+		Name:    "testing update",
+		Email:   "testing email",
+		Address: "testing address",
+		ZipCode: "testing zip code",
+		Phone:   "testing phone",
+	}
+
+	if err := repo.Update(ctx, &orderToUpdate); err != nil {
+		t.Error(err.Error())
+	}
+
+	snapshot, err := c.Collection(ordersCollection).Doc(ID).Get(ctx)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	cupaloy.SnapshotT(t, snapshot.Data())
+}

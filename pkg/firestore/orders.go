@@ -71,10 +71,20 @@ func (o *OrdersRepository) Get(ctx context.Context, id string) (*minicommerce.Or
 
 // Create ...
 func (o *OrdersRepository) Create(ctx context.Context, order *minicommerce.Order) error {
+	docRef := o.client.Collection(ordersCollection).Doc(order.ID)
+	if _, err := docRef.Create(ctx, order); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// Update ...
+// Update updates the existing orders document by replacing it using the firestore set method
 func (o *OrdersRepository) Update(ctx context.Context, order *minicommerce.Order) error {
+	docRef := o.client.Collection(ordersCollection).Doc(order.ID)
+	if _, err := docRef.Set(ctx, order); err != nil {
+		return err
+	}
+
 	return nil
 }

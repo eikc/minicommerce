@@ -1,0 +1,19 @@
+(map[string]interface {}) (len=11) {
+  (string) (len=6) "amount": (int64) 15000,
+  (string) (len=6) "coupon": (string) "",
+  (string) (len=8) "customer": (map[string]interface {}) (len=5) {
+    (string) (len=7) "address": (string) "",
+    (string) (len=5) "email": (string) "",
+    (string) (len=4) "name": (string) "",
+    (string) (len=5) "phone": (string) "",
+    (string) (len=7) "zipCode": (string) ""
+  },
+  (string) (len=8) "discount": (int64) 0,
+  (string) (len=5) "items": (interface {}) <nil>,
+  (string) (len=9) "netAmount": (int64) 0,
+  (string) (len=9) "paymentId": (string) "",
+  (string) (len=8) "refunded": (bool) false,
+  (string) (len=8) "shipping": (int64) 0,
+  (string) (len=5) "taxes": (int64) 0,
+  (string) (len=5) "total": (int64) 0
+}

@@ -1,6 +1,9 @@
 package http
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/eikc/minicommerce"
 	"github.com/julienschmidt/httprouter"
 )
@@ -21,4 +24,10 @@ func NewServer(downloadableRepository minicommerce.DownloadableRepository,
 		storage:                storage,
 		router:                 httprouter.New(),
 	}
+}
+
+// Run starts the server with all the given params
+func (s *Server) Run(port string) error {
+	s.routes()
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), s.router)
 }

@@ -1,0 +1,4 @@
+(struct { Code int; Err string }) {
+  Code: (int) 500,
+  Err: (string) (len=54) "When an error occurs, internal server error is thrown\n"
+}

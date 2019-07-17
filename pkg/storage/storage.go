@@ -10,19 +10,22 @@ import (
 	_ "gocloud.dev/blob/gcsblob"
 )
 
+// BucketURL is the type for connecting to a common bucket
+type BucketURL string
+
 // Storage is the interface to the blob storage
 type Storage struct {
-	BucketURL string
+	BucketURL BucketURL
 }
 
 // NewStorage creates the storage struct with all the needed dependencies
-func NewStorage(bucketURL string) *Storage {
+func NewStorage(bucketURL BucketURL) *Storage {
 	return &Storage{bucketURL}
 }
 
 // Read gets an object from the cloud storage
 func (s *Storage) Read(ctx context.Context, location string) (io.ReadCloser, error) {
-	b, err := blob.OpenBucket(ctx, s.BucketURL)
+	b, err := blob.OpenBucket(ctx, string(s.BucketURL))
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +41,7 @@ func (s *Storage) Read(ctx context.Context, location string) (io.ReadCloser, err
 
 // Write adds an new object to the cloud storage
 func (s *Storage) Write(ctx context.Context, location string, r io.Reader) error {
-	b, err := blob.OpenBucket(ctx, s.BucketURL)
+	b, err := blob.OpenBucket(ctx, string(s.BucketURL))
 	if err != nil {
 		return err
 	}
@@ -63,7 +66,7 @@ func (s *Storage) Write(ctx context.Context, location string, r io.Reader) error
 
 // Delete deletes an object from the cloud storage
 func (s *Storage) Delete(ctx context.Context, location string) error {
-	b, err := blob.OpenBucket(ctx, s.BucketURL)
+	b, err := blob.OpenBucket(ctx, string(s.BucketURL))
 	if err != nil {
 		return err
 	}

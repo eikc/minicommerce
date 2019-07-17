@@ -1,0 +1,4 @@
+(struct { Name string; Location string }) {
+  Name: (string) (len=10) "simple.pdf",
+  Location: (string) (len=10) "simple.pdf"
+}

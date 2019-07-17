@@ -1,0 +1,4 @@
+(struct { Collection []struct { ID string; Name string } }) {
+  Collection: ([]struct { ID string; Name string }) {
+  }
+}

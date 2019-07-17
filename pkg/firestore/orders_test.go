@@ -105,6 +105,8 @@ func TestGetOrder(t *testing.T) {
 		t.Error(err.Error())
 	}
 
+	defer cleanup(client, ordersCollection, "testing-getting-order")
+
 	if _, err := client.Collection(ordersCollection).Doc(o.ID).Set(ctx, o); err != nil {
 		t.Error(err.Error())
 	}
@@ -127,10 +129,7 @@ func TestCreateOrder(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	defer func() {
-		c.Collection(ordersCollection).Doc(ID).Delete(ctx)
-		c.Close()
-	}()
+	defer cleanup(c, ordersCollection, ID)
 
 	repo := NewOrdersRepository(c)
 	order := minicommerce.Order{
@@ -158,10 +157,7 @@ func TestUpdateOrder(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	defer func() {
-		c.Collection(ordersCollection).Doc(ID).Delete(ctx)
-		c.Close()
-	}()
+	defer cleanup(c, ordersCollection, ID)
 
 	orderToUpdate := minicommerce.Order{
 		ID:     ID,

@@ -3,15 +3,25 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+
+	"github.com/eikc/minicommerce/pkg/storage"
 )
 
 func main() {
 	ctx := context.Background()
-	srv, err := NewServer(ctx, "gs://minicommerce_testing_123", "minicommerce-testing")
+	bucketURL := os.Getenv("bucketURL")
+	projectID := os.Getenv("projectID")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	srv, err := NewServer(ctx, storage.BucketURL(bucketURL), projectID)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	log.Printf("Listening on port %s", "8080")
-	log.Fatal(srv.Run("8080"))
+	log.Printf("Listening on port %s", port)
+	log.Fatal(srv.Run(port))
 }

@@ -3,6 +3,10 @@ package http
 import (
 	"net/http"
 
+	"github.com/gofrs/uuid"
+
+	"github.com/eikc/minicommerce"
+
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -48,6 +52,47 @@ func (s *Server) postDownloadables() httprouter.Handle {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		ctx := r.Context()
+		file, handler, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
 
+		// Should there be some kind of file validation ??
+		// Can't figure it out - since there could be multiple usecases for downloadable content
+		// Video, pdf's, executables, etc etc..
+
+		ID, err := uuid.NewV4()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		downloadable := minicommerce.Downloadable{
+			ID:       ID.String(),
+			Name:     handler.Filename,
+			Location: handler.Filename,
+		}
+
+		if err := s.downloadableRepository.Create(ctx, &downloadable); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := s.storage.Write(ctx, handler.Filename, file); err != nil {
+			s.downloadableRepository.Delete(ctx, ID.String())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		resp := response{
+			ID:       downloadable.ID,
+			Name:     downloadable.Name,
+			Location: downloadable.Location,
+		}
+
+		sendJSON(w, 200, resp)
 	}
 }

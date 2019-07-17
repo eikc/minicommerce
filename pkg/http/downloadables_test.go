@@ -1,48 +1,27 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/eikc/minicommerce/pkg/mocks"
+
+	"github.com/golang/mock/gomock"
 
 	"github.com/bradleyjkemp/cupaloy/v2"
 
 	"github.com/eikc/minicommerce"
 	"github.com/julienschmidt/httprouter"
 )
-
-type fakeDownloadableRepository struct {
-	data []minicommerce.Downloadable
-	err  error
-}
-
-func (f *fakeDownloadableRepository) Get(ctx context.Context, id string) (*minicommerce.Downloadable, error) {
-	var downloadable minicommerce.Downloadable
-	for _, d := range f.data {
-		if d.ID == id {
-			downloadable = d
-			break
-		}
-	}
-
-	return &downloadable, f.err
-}
-
-func (f *fakeDownloadableRepository) GetAll(ctx context.Context) ([]minicommerce.Downloadable, error) {
-	return f.data, f.err
-}
-
-func (f *fakeDownloadableRepository) Create(ctx context.Context, downloadable *minicommerce.Downloadable) error {
-	f.data = append(f.data, *downloadable)
-	return f.err
-}
-
-func (f *fakeDownloadableRepository) Delete(ctx context.Context, id string) error {
-	return f.err
-}
 
 func TestGetDownloadables(t *testing.T) {
 	testCases := []struct {
@@ -80,12 +59,15 @@ func TestGetDownloadables(t *testing.T) {
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockDownloadableRepository(ctrl)
+			mockRepo.EXPECT().GetAll(gomock.Any()).Return(tC.data, tC.err).Times(1)
+
 			server := Server{
-				downloadableRepository: &fakeDownloadableRepository{
-					data: tC.data,
-					err:  tC.err,
-				},
-				router: httprouter.New(),
+				downloadableRepository: mockRepo,
+				router:                 httprouter.New(),
 			}
 			server.routes()
 
@@ -127,4 +109,70 @@ func TestGetDownloadables(t *testing.T) {
 			cupaloy.SnapshotT(t, response)
 		})
 	}
+}
+
+func Test(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mocks.NewMockDownloadableRepository(ctrl)
+	storage := mocks.NewMockStorage(ctrl)
+
+	var capturedDownloadable struct {
+		Name     string
+		Location string
+	}
+	repo.EXPECT().Create(gomock.Any(), gomock.Any()).Do(func(ctx context.Context, d *minicommerce.Downloadable) {
+		capturedDownloadable = struct {
+			Name     string
+			Location string
+		}{
+			Name:     d.Name,
+			Location: d.Location,
+		}
+	}).Times(1)
+	storage.EXPECT().Write(gomock.Any(), "simple.pdf", gomock.Any()).Times(1)
+
+	server := Server{
+		downloadableRepository: repo,
+		storage:                storage,
+		router:                 httprouter.New(),
+	}
+	server.routes()
+
+	recorder := httptest.NewRecorder()
+	r, err := newfileUploadRequest("/api/downloadables", "file", "./testfiles/simple.pdf")
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	server.router.ServeHTTP(recorder, r)
+
+	cupaloy.SnapshotT(t, capturedDownloadable)
+}
+
+// Creates a new file upload http request with optional extra params
+func newfileUploadRequest(uri string, paramName, path string) (*http.Request, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(paramName, filepath.Base(path))
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(part, file)
+
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", uri, body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	return req, err
 }

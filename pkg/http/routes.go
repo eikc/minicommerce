@@ -6,6 +6,6 @@ import (
 
 func (s *Server) routes() {
 	s.router.Handle(http.MethodGet, "/api/downloadables", s.getAllDownloadables())
-	s.router.Handle(http.MethodPost, "/api/downloadbles", s.postDownloadables())
+	s.router.Handle(http.MethodPost, "/api/downloadables", s.postDownloadables())
 
 }

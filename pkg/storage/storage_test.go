@@ -13,7 +13,7 @@ func TestStorage(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	storage := NewStorage("gs://minicommerce_testing_123")
+	storage := NewStorage(BucketURL("gs://minicommerce_testing_123"))
 
 	if err := storage.Write(ctx, "testing.txt", strings.NewReader("hello world")); err != nil {
 		t.Errorf(err.Error())

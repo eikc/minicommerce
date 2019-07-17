@@ -111,7 +111,7 @@ func TestGetDownloadables(t *testing.T) {
 	}
 }
 
-func Test(t *testing.T) {
+func TestCreateDownloadable(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

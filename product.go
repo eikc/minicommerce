@@ -26,7 +26,7 @@ type Product struct {
 	Metadata     map[string]string `firestore:"metadata" json:"metadata"`
 	Active       bool              `firestore:"active" json:"active"`
 	URL          string            `firestore:"url" json:"url"`
-	Downloadable []Downloadable    `firestore:"downloadable" json:"downloadable"`
+	Downloadable []Downloadable    `firestore:"downloadable" json:"downloadables"`
 }
 
 // ProductReader is the interface for reading products from a given datastore

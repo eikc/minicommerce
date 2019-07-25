@@ -6,9 +6,9 @@ import (
 
 // Downloadable is the location of a downloadable digital product uploaded somewhere to google cloud storage
 type Downloadable struct {
-	ID       string `firestore:"-"`
-	Name     string `firestore:"name,omitempty"`
-	Location string `firestore:"location,omitempty"`
+	ID       string `firestore:"-" json:"id"`
+	Name     string `firestore:"name" json:"name"`
+	Location string `firestore:"location" json:"location"`
 }
 
 // DownloadableReader ...

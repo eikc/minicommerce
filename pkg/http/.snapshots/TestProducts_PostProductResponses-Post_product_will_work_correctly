@@ -1,0 +1,18 @@
+(struct { code int; resp http.response }) {
+  code: (int) 200,
+  resp: (http.response) {
+    Type: (minicommerce.ProductType) (len=7) "digital",
+    Name: (string) (len=24) "testing a product create",
+    Description: (string) (len=36) "testing a product create description",
+    Price: (int64) 20000,
+    Active: (bool) true,
+    URL: (string) "",
+    Downloadables: ([]struct { ID string "json:\"id\""; Name string "json:\"name\""; Location string "json:\"location\"" }) (len=1) {
+      (struct { ID string "json:\"id\""; Name string "json:\"name\""; Location string "json:\"location\"" }) {
+        ID: (string) (len=15) "testing-testing",
+        Name: (string) (len=15) "testing-testing",
+        Location: (string) (len=15) "testing-testing"
+      }
+    }
+  }
+}

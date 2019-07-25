@@ -121,6 +121,7 @@ func (s *Server) postProduct() httprouter.Handle {
 		// it's on the todo list
 		if err := s.productRepository.Create(ctx, &product); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		sendJSON(w, 200, product)

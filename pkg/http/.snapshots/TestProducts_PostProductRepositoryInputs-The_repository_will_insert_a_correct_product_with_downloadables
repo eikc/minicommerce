@@ -1,0 +1,19 @@
+(minicommerce.Product) {
+  ID: (string) "",
+  Created: (int64) 0,
+  Updated: (int64) 0,
+  Type: (minicommerce.ProductType) (len=7) "digital",
+  Name: (string) (len=33) "testing digital product insertion",
+  Description: (string) (len=28) "testing repository insertion",
+  Price: (int64) 25000,
+  Metadata: (map[string]string) <nil>,
+  Active: (bool) true,
+  URL: (string) "",
+  Downloadable: ([]minicommerce.Downloadable) (len=1) {
+    (minicommerce.Downloadable) {
+      ID: (string) (len=33) "testing-digital-product-insertion",
+      Name: (string) (len=33) "testing-digital-product-insertion",
+      Location: (string) (len=33) "testing-digital-product-insertion"
+    }
+  }
+}

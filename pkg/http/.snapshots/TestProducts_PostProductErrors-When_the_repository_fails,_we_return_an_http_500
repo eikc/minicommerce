@@ -1,0 +1,4 @@
+(struct { code int; body string }) {
+  code: (int) 500,
+  body: (string) (len=25) "some test error occurred\n"
+}

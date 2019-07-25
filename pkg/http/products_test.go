@@ -2,7 +2,9 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -20,7 +22,24 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func TestGetAllProducts(t *testing.T) {
+func setupProductHTTPServer(t *testing.T) (*Server, *mocks.MockProductRepository, *mocks.MockDownloadableRepository, func()) {
+	ctrl := gomock.NewController(t)
+	repo := mocks.NewMockProductRepository(ctrl)
+	dRepo := mocks.NewMockDownloadableRepository(ctrl)
+
+	server := Server{
+		productRepository:      repo,
+		downloadableRepository: dRepo,
+		router:                 httprouter.New(),
+	}
+	server.routes()
+
+	return &server, repo, dRepo, func() {
+		ctrl.Finish()
+	}
+}
+
+func TestProducts_GetAllProducts(t *testing.T) {
 	testCases := []struct {
 		desc     string
 		products []minicommerce.Product
@@ -66,16 +85,8 @@ func TestGetAllProducts(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			repo := mocks.NewMockProductRepository(ctrl)
-
-			server := Server{
-				productRepository: repo,
-				router:            httprouter.New(),
-			}
-			server.routes()
+			server, repo, _, f := setupProductHTTPServer(t)
+			defer f()
 
 			repo.EXPECT().GetAll(gomock.Any()).Times(1).Return(tC.products, nil)
 
@@ -100,7 +111,7 @@ func TestGetAllProducts(t *testing.T) {
 	}
 }
 
-func TestGetProductByID(t *testing.T) {
+func TestProducts_GetProductByID(t *testing.T) {
 	testCases := []struct {
 		desc    string
 		id      string
@@ -138,16 +149,8 @@ func TestGetProductByID(t *testing.T) {
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			repo := mocks.NewMockProductRepository(ctrl)
-
-			server := Server{
-				productRepository: repo,
-				router:            httprouter.New(),
-			}
-			server.routes()
+			server, repo, _, finalize := setupProductHTTPServer(t)
+			defer finalize()
 
 			repo.EXPECT().Get(gomock.Any(), tC.id).Times(1).Return(tC.product, tC.err)
 
@@ -172,7 +175,7 @@ func TestGetProductByID(t *testing.T) {
 	}
 }
 
-func TestPostProduct(t *testing.T) {
+func TestProducts_PostProductResponses(t *testing.T) {
 	type downloadables struct {
 		ID string `json:"id,omitempty"`
 	}
@@ -206,7 +209,6 @@ func TestPostProduct(t *testing.T) {
 	testCases := []struct {
 		desc    string
 		request request
-		err     error
 	}{
 		{
 			desc: "Post product will work correctly",
@@ -224,24 +226,26 @@ func TestPostProduct(t *testing.T) {
 					},
 				},
 			},
-			err: nil,
+		},
+		{
+			desc: "Post product will work with no downloadables",
+			request: request{
+				Product: product{
+					Type:        minicommerce.ProductTypeLink,
+					Name:        "testing a product create",
+					Description: "testing a product create description",
+					Price:       20000,
+					Active:      true,
+					URL:         "testing-url-thingie",
+				},
+			},
 		},
 	}
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			repo := mocks.NewMockProductRepository(ctrl)
-			mockDownloadables := mocks.NewMockDownloadableRepository(ctrl)
-
-			server := Server{
-				productRepository:      repo,
-				downloadableRepository: mockDownloadables,
-				router:                 httprouter.New(),
-			}
-			server.routes()
+			server, repo, mockDownloadables, finalize := setupProductHTTPServer(t)
+			defer finalize()
 
 			for _, d := range tC.request.Product.Downloadables {
 				item := minicommerce.Downloadable{
@@ -253,7 +257,7 @@ func TestPostProduct(t *testing.T) {
 				mockDownloadables.EXPECT().Get(gomock.Any(), d.ID).Times(1).Return(&item, nil)
 			}
 
-			repo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1)
+			repo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 
 			recorder := httptest.NewRecorder()
 			requestByte, _ := json.Marshal(tC.request)
@@ -265,26 +269,196 @@ func TestPostProduct(t *testing.T) {
 			server.router.ServeHTTP(recorder, r)
 
 			var resp response
-
 			json.Unmarshal(recorder.Body.Bytes(), &resp)
-			cupaloy.SnapshotT(t, resp)
+
+			result := struct {
+				code int
+				resp response
+			}{
+				code: recorder.Code,
+				resp: resp,
+			}
+
+			cupaloy.SnapshotT(t, result)
 		})
 	}
 }
 
-func TestPutProduct(t *testing.T) {
+func TestProducts_PostProductErrors(t *testing.T) {
+	type downloadable struct {
+		ID string `json:"id,omitempty"`
+	}
+	type product struct {
+		Downloadables []downloadable `json:"downloadables,omitempty"`
+	}
+	type request struct {
+		Product product `json:"product,omitempty"`
+	}
+
 	testCases := []struct {
-		desc    string
-		request string
-		err     error
+		desc            string
+		request         request
+		err             error
+		downloadableErr error
 	}{
 		{
-			desc: "Put product will work correctly",
+			desc: "if an downloadable does not exist, it will return an http 404",
+			request: request{
+				Product: product{
+					Downloadables: []downloadable{
+						{
+							ID: "something-that-does-not-exist",
+						},
+					},
+				},
+			},
+			downloadableErr: errors.New("not found"),
+		},
+		{
+			desc: "When the repository fails, we return an http 500",
+			request: request{
+				Product: product{
+					Downloadables: []downloadable{
+						{
+							ID: "something-that-does-not-exist",
+						},
+					},
+				},
+			},
+			err: errors.New("some test error occurred"),
 		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
+			server, repo, mockDownloadables, finalize := setupProductHTTPServer(t)
+			defer finalize()
 
+			for _, d := range tC.request.Product.Downloadables {
+				item := minicommerce.Downloadable{
+					ID:       d.ID,
+					Name:     d.ID,
+					Location: d.ID,
+				}
+
+				mockDownloadables.EXPECT().Get(gomock.Any(), d.ID).Times(1).Return(&item, tC.downloadableErr)
+			}
+
+			if tC.err != nil {
+				repo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(tC.err)
+			}
+
+			recorder := httptest.NewRecorder()
+			requestByte, _ := json.Marshal(tC.request)
+			requestReader := bytes.NewReader(requestByte)
+			r, err := http.NewRequest(http.MethodPost, "/api/products", requestReader)
+			if err != nil {
+				t.Error(err.Error())
+			}
+			server.router.ServeHTTP(recorder, r)
+
+			result := struct {
+				code int
+				body string
+			}{
+				code: recorder.Code,
+				body: recorder.Body.String(),
+			}
+
+			cupaloy.SnapshotT(t, result)
+		})
+	}
+}
+
+func TestProducts_PostProductRepositoryInputs(t *testing.T) {
+	type downloadable struct {
+		ID string `json:"id"`
+	}
+
+	type product struct {
+		Type          string         `json:"type"`
+		Name          string         `json:"name"`
+		Description   string         `json:"description"`
+		Price         int64          `json:"price"`
+		Active        bool           `json:"active"`
+		URL           string         `json:"url"`
+		Downloadables []downloadable `json:"downloadables,omitempty"`
+	}
+
+	type request struct {
+		Product product `json:"product"`
+	}
+
+	testCases := []struct {
+		desc    string
+		request request
+	}{
+		{
+			desc: "The repository will insert a correct product with downloadables",
+			request: request{
+				Product: product{
+					Type:        string(minicommerce.ProductTypeDigital),
+					Name:        "testing digital product insertion",
+					Description: "testing repository insertion",
+					Price:       25000,
+					Active:      true,
+					Downloadables: []downloadable{
+						{
+							ID: "testing-digital-product-insertion",
+						},
+					},
+				},
+			},
+		},
+		{
+			desc: "The repository input will be correct with no downloadables",
+			request: request{
+				Product: product{
+					Type:          string(minicommerce.ProductTypeLink),
+					Name:          "testing digital product insertion",
+					Description:   "testing repository insertion",
+					Price:         25000,
+					Active:        true,
+					Downloadables: nil,
+				},
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			server, repo, mockDownloadables, finalize := setupProductHTTPServer(t)
+			defer finalize()
+
+			for _, d := range tC.request.Product.Downloadables {
+				item := minicommerce.Downloadable{
+					ID:       d.ID,
+					Name:     d.ID,
+					Location: d.ID,
+				}
+
+				mockDownloadables.EXPECT().Get(gomock.Any(), d.ID).Times(1).Return(&item, nil)
+			}
+
+			var captured minicommerce.Product
+			repo.EXPECT().Create(gomock.Any(), gomock.Any()).Do(func(ctx context.Context, p *minicommerce.Product) {
+				captured = *p
+
+				// ugly hack to reset the auto-generated fields that change between tests
+				// I have asked in a cupaloy issue for tips for this "issue"
+				captured.ID = ""
+				captured.Created = 0
+				captured.Updated = 0
+			}).Times(1).Return(nil)
+
+			recorder := httptest.NewRecorder()
+			requestByte, _ := json.Marshal(tC.request)
+			requestReader := bytes.NewReader(requestByte)
+			r, err := http.NewRequest(http.MethodPost, "/api/products", requestReader)
+			if err != nil {
+				t.Error(err.Error())
+			}
+			server.router.ServeHTTP(recorder, r)
+
+			cupaloy.SnapshotT(t, captured)
 		})
 	}
 }

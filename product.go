@@ -1,5 +1,9 @@
 package minicommerce
 
+import (
+	"context"
+)
+
 // ProductType is the representation of the product type within miniCommerce
 type ProductType string
 
@@ -23,4 +27,27 @@ type Product struct {
 	Active       bool              `firestore:"active,omitempty"`
 	URL          string            `firestore:"url,omitempty"`
 	Downloadable []Downloadable    `firestore:"downloadable,omitempty"`
+}
+
+// ProductReader is the interface for reading products from a given datastore
+type ProductReader interface {
+	GetAll(ctx context.Context) ([]Product, error)
+	Get(ctx context.Context, id string) (*Product, error)
+}
+
+// ProductWriter is the interface for creating a product in a given datastore
+type ProductWriter interface {
+	Create(ctx context.Context, product *Product) error
+}
+
+// ProductUpdater is the interface for updating a product in a given datastor
+type ProductUpdater interface {
+	Update(ctx context.Context, product *Product) error
+}
+
+// ProductRepository is the interface that combines all readers and writers for a product
+type ProductRepository interface {
+	ProductReader
+	ProductWriter
+	ProductUpdater
 }

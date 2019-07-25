@@ -2,7 +2,7 @@
 // Source: github.com/eikc/minicommerce (interfaces: ProductRepository)
 
 // Package mock_minicommerce is a generated GoMock package.
-package mock_minicommerce
+package mocks
 
 import (
 	context "context"

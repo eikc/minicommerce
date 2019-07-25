@@ -11,6 +11,7 @@ import (
 // Server is the http server for serving the minicommerce rest API
 type Server struct {
 	downloadableRepository minicommerce.DownloadableRepository
+	productRepository      minicommerce.ProductRepository
 	storage                minicommerce.Storage
 	router                 *httprouter.Router
 }

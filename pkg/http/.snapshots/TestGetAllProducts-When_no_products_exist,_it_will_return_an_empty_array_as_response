@@ -1,0 +1,4 @@
+(struct { status int; body string }) {
+  status: (int) 200,
+  body: (string) (len=17) "{\"collection\":[]}"
+}

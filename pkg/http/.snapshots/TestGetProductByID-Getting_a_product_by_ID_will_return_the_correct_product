@@ -1,0 +1,4 @@
+(struct { status int; body string }) {
+  status: (int) 200,
+  body: (string) (len=299) "{\"id\":\"product-one\",\"created\":1,\"updated\":2,\"type\":\"digital\",\"name\":\"testing getting product\",\"description\":\"testing getting product by id\",\"price\":15000,\"metadata\":null,\"active\":true,\"url\":\"\",\"downloadable\":[{\"id\":\"testing-with-downloadable\",\"name\":\"some-pdf.pdf\",\"location\":\"somewhere/some.pdf\"}]}"
+}

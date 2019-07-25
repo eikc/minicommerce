@@ -12,4 +12,5 @@ func (s *Server) routes() {
 	// Products
 	s.router.Handle(http.MethodGet, "/api/products", s.getAllProducts())
 	s.router.Handle(http.MethodGet, "/api/products/:id", s.getProductByID())
+	s.router.Handle(http.MethodPost, "/api/products", s.postProduct())
 }

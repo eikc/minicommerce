@@ -15,6 +15,11 @@ func NewGenerator() *Generator {
 }
 
 // New generates a new UUID v4 ID to use for models
-func (g *Generator) New() (uuid.UUID, error) {
-	return uuid.NewV4()
+func (g *Generator) New() (string, error) {
+	id, err := uuid.NewV4()
+	if err != nil {
+		return "", err
+	}
+
+	return id.String(), nil
 }

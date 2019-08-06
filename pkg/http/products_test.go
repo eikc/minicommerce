@@ -22,19 +22,27 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func setupProductHTTPServer(t *testing.T) (*Server, *mocks.MockProductRepository, *mocks.MockDownloadableRepository, func()) {
+func setupProductHTTPServer(t *testing.T) (*Server, *mocks.MockProductRepository,
+	*mocks.MockDownloadableRepository,
+	*mocks.MockTimeService,
+	*mocks.MockIDGenerator,
+	func()) {
 	ctrl := gomock.NewController(t)
 	repo := mocks.NewMockProductRepository(ctrl)
 	dRepo := mocks.NewMockDownloadableRepository(ctrl)
+	time := mocks.NewMockTimeService(ctrl)
+	uuidGenerator := mocks.NewMockIDGenerator(ctrl)
 
 	server := Server{
 		productRepository:      repo,
 		downloadableRepository: dRepo,
+		timeService:            time,
+		idGenerator:            uuidGenerator,
 		router:                 httprouter.New(),
 	}
 	server.routes()
 
-	return &server, repo, dRepo, func() {
+	return &server, repo, dRepo, time, uuidGenerator, func() {
 		ctrl.Finish()
 	}
 }
@@ -85,7 +93,7 @@ func TestProducts_GetAllProducts(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			server, repo, _, f := setupProductHTTPServer(t)
+			server, repo, _, _, _, f := setupProductHTTPServer(t)
 			defer f()
 
 			repo.EXPECT().GetAll(gomock.Any()).Times(1).Return(tC.products, nil)
@@ -149,7 +157,7 @@ func TestProducts_GetProductByID(t *testing.T) {
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			server, repo, _, finalize := setupProductHTTPServer(t)
+			server, repo, _, _, _, finalize := setupProductHTTPServer(t)
 			defer finalize()
 
 			repo.EXPECT().Get(gomock.Any(), tC.id).Times(1).Return(tC.product, tC.err)
@@ -244,7 +252,7 @@ func TestProducts_PostProductResponses(t *testing.T) {
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			server, repo, mockDownloadables, finalize := setupProductHTTPServer(t)
+			server, repo, mockDownloadables, time, idgenerator, finalize := setupProductHTTPServer(t)
 			defer finalize()
 
 			for _, d := range tC.request.Product.Downloadables {
@@ -258,6 +266,8 @@ func TestProducts_PostProductResponses(t *testing.T) {
 			}
 
 			repo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			time.EXPECT().Now().Times(1).Return(int64(123321))
+			idgenerator.EXPECT().New().Times(1).Return("123-321-123-321", nil)
 
 			recorder := httptest.NewRecorder()
 			requestByte, _ := json.Marshal(tC.request)
@@ -330,8 +340,11 @@ func TestProducts_PostProductErrors(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			server, repo, mockDownloadables, finalize := setupProductHTTPServer(t)
+			server, repo, mockDownloadables, time, idgenerator, finalize := setupProductHTTPServer(t)
 			defer finalize()
+
+			time.EXPECT().Now().Times(1).Return(int64(123321))
+			idgenerator.EXPECT().New().Times(1).Return("123-321-123-321", nil)
 
 			for _, d := range tC.request.Product.Downloadables {
 				item := minicommerce.Downloadable{
@@ -425,8 +438,11 @@ func TestProducts_PostProductRepositoryInputs(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			server, repo, mockDownloadables, finalize := setupProductHTTPServer(t)
+			server, repo, mockDownloadables, time, idgenerator, finalize := setupProductHTTPServer(t)
 			defer finalize()
+
+			time.EXPECT().Now().Times(1).Return(int64(123321))
+			idgenerator.EXPECT().New().Times(1).Return("123-321-123-321", nil)
 
 			for _, d := range tC.request.Product.Downloadables {
 				item := minicommerce.Downloadable{
@@ -441,12 +457,6 @@ func TestProducts_PostProductRepositoryInputs(t *testing.T) {
 			var captured minicommerce.Product
 			repo.EXPECT().Create(gomock.Any(), gomock.Any()).Do(func(ctx context.Context, p *minicommerce.Product) {
 				captured = *p
-
-				// ugly hack to reset the auto-generated fields that change between tests
-				// I have asked in a cupaloy issue for tips for this "issue"
-				captured.ID = ""
-				captured.Created = 0
-				captured.Updated = 0
 			}).Times(1).Return(nil)
 
 			recorder := httptest.NewRecorder()

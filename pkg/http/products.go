@@ -2,9 +2,6 @@ package http
 
 import (
 	"net/http"
-	"time"
-
-	"github.com/gofrs/uuid"
 
 	"github.com/eikc/minicommerce/pkg/firestore"
 
@@ -73,7 +70,7 @@ func (s *Server) postProduct() httprouter.Handle {
 
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		ctx := r.Context()
-		id, err := uuid.NewV4()
+		id, err := s.idGenerator.New()
 
 		if r.Body == nil {
 			http.Error(w, "Incorrect request", http.StatusBadRequest)
@@ -90,10 +87,10 @@ func (s *Server) postProduct() httprouter.Handle {
 			return
 		}
 
-		created := time.Now().Unix()
+		created := s.timeService.Now()
 
 		product := minicommerce.Product{
-			ID:          id.String(),
+			ID:          id,
 			Created:     created,
 			Updated:     created,
 			Type:        request.Product.Type,

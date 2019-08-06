@@ -13,15 +13,21 @@ type Server struct {
 	downloadableRepository minicommerce.DownloadableRepository
 	productRepository      minicommerce.ProductRepository
 	storage                minicommerce.Storage
+	idGenerator            minicommerce.IDGenerator
+	timeService            minicommerce.TimeService
 	router                 *httprouter.Router
 }
 
 // NewServer is the constructor for the Http Server
 func NewServer(downloadableRepository minicommerce.DownloadableRepository,
-	storage minicommerce.Storage) *Server {
+	storage minicommerce.Storage,
+	timeService minicommerce.TimeService,
+	idGenerator minicommerce.IDGenerator) *Server {
 
 	return &Server{
 		downloadableRepository: downloadableRepository,
+		idGenerator:            idGenerator,
+		timeService:            timeService,
 		storage:                storage,
 		router:                 httprouter.New(),
 	}

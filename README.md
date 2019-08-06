@@ -1,1 +1,1 @@
-miniCommerce
+minicommerce

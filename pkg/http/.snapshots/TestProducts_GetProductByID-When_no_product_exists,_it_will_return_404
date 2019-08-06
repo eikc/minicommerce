@@ -1,0 +1,4 @@
+(struct { status int; body string }) {
+  status: (int) 404,
+  body: (string) (len=18) "product not found\n"
+}

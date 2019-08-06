@@ -1,0 +1,4 @@
+(struct { code int; body string }) {
+  code: (int) 404,
+  body: (string) (len=10) "not found\n"
+}
